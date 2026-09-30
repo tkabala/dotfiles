@@ -1,0 +1,34 @@
+#!/bin/bash
+# Install base packages needed by these dotfiles and make zsh the login shell.
+# Runs once per machine (re-runs if this file changes), before dotfiles are applied.
+set -euo pipefail
+
+SUDO=""
+[ "$(id -u)" -ne 0 ] && SUDO="sudo"
+
+{{ if eq .chezmoi.os "darwin" -}}
+if ! command -v brew >/dev/null 2>&1; then
+  echo "Homebrew not found; install it from https://brew.sh first" >&2
+  exit 1
+fi
+brew install zsh git curl
+{{ else if eq .chezmoi.os "linux" -}}
+{{   if or (eq .chezmoi.osRelease.id "debian" "ubuntu") (contains "debian" (get .chezmoi.osRelease "idLike")) -}}
+$SUDO apt-get update
+$SUDO apt-get install -y zsh git curl fonts-powerline
+{{   else if or (eq .chezmoi.osRelease.id "arch") (contains "arch" (get .chezmoi.osRelease "idLike")) -}}
+$SUDO pacman -Sy --needed --noconfirm zsh git curl powerline-fonts
+{{   else if eq .chezmoi.osRelease.id "fedora" -}}
+$SUDO dnf install -y zsh git curl powerline-fonts util-linux-user
+{{   else -}}
+echo "Unsupported distro '{{ .chezmoi.osRelease.id }}'; install zsh, git and curl manually" >&2
+{{   end -}}
+{{ end -}}
+
+# Make zsh the default login shell
+ZSH_PATH="$(command -v zsh || true)"
+if [ -n "$ZSH_PATH" ] && [ "$(basename "${SHELL:-}")" != "zsh" ]; then
+  grep -qx "$ZSH_PATH" /etc/shells || echo "$ZSH_PATH" | $SUDO tee -a /etc/shells >/dev/null
+  # via sudo so chsh doesn't prompt for the user's password (no tty during apply)
+  $SUDO chsh -s "$ZSH_PATH" "$(id -un)" || echo "chsh failed; run: chsh -s $ZSH_PATH" >&2
+fi
