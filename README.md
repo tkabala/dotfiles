@@ -7,10 +7,10 @@ Personal dotfiles managed with [chezmoi](https://www.chezmoi.io/).
 ### 1. Install chezmoi and apply in one step
 
 ```sh
-sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply tkabala
+sh -c "$(curl -fsLS get.chezmoi.io)" -- -b ~/.local/bin init --apply tkabala
 ```
 
-This installs chezmoi to `./bin`, clones `github.com/tkabala/dotfiles`
+This installs chezmoi to `~/.local/bin`, clones `github.com/tkabala/dotfiles`
 into `~/.local/share/chezmoi`, and applies the dotfiles to your home directory.
 
 On first apply it also:
