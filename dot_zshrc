@@ -110,3 +110,13 @@ source $ZSH/oh-my-zsh.sh
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
+
+# herdr: update (at most daily), then autostart. Updating has to happen here,
+# before launch, because herdr can't self-update from inside a session.
+# Skipped inside herdr, in IDE terminals, and with HERDR_NO_AUTOSTART=1.
+if [[ -o interactive && -z "$HERDR_ENV" && -z "$HERDR_NO_AUTOSTART" \
+      && "$TERM_PROGRAM" != vscode && "$TERMINAL_EMULATOR" != JetBrains-JediTerm ]] \
+    && (( $+commands[herdr] )); then
+  herdr-update-check
+  herdr
+fi

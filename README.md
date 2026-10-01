@@ -20,6 +20,19 @@ On first apply it also:
   (may prompt for your sudo password)
 - clones [oh-my-zsh](https://ohmyz.sh/) into `~/.oh-my-zsh` — `.chezmoiexternal.toml`
   (don't run the oh-my-zsh installer; it would overwrite `~/.zshrc`)
+- installs [herdr](https://herdr.dev) into `~/.local/bin` if missing —
+  `run_once_after_20-install-herdr.sh`
+
+## herdr
+
+New interactive zsh shells start herdr (not inside herdr itself, VS Code or
+JetBrains terminals). Before launching, `~/.local/bin/herdr-update-check` checks
+herdr's update channel at most once a day and runs `herdr update --handoff` if a
+newer release is out — herdr can't update itself from inside a session.
+
+- `HERDR_NO_AUTOSTART=1 zsh` — a shell without herdr
+- `HERDR_UPDATE_INTERVAL=<seconds>` — change how often to check (default 86400)
+- `herdr-update-check --force` — check now, from a shell outside herdr
 
 ### 2. Or step by step
 

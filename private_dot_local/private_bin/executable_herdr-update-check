@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# Update herdr if a newer release is out on its channel (stable/preview).
+# Must run OUTSIDE herdr: it can't self-update from inside a session.
+# Checks at most once per HERDR_UPDATE_INTERVAL seconds (default: 1 day);
+# pass --force to skip the throttle.
+set -u
+
+[[ -n "${HERDR_ENV:-}" ]] && exit 0
+command -v herdr >/dev/null || exit 0
+
+interval=${HERDR_UPDATE_INTERVAL:-86400}
+stamp="${XDG_CACHE_HOME:-$HOME/.cache}/herdr-update-check"
+now=$(date +%s)
+
+if [[ "${1:-}" != --force && -f "$stamp" ]]; then
+  last=$(<"$stamp")
+  [[ "$last" =~ ^[0-9]+$ ]] && (( now - last < interval )) && exit 0
+fi
+# Record the attempt even if the check fails, so being offline doesn't slow
+# down every new shell.
+mkdir -p "${stamp%/*}" && echo "$now" >"$stamp"
+
+[[ "$(herdr channel show 2>/dev/null)" == preview ]] \
+  && url=https://herdr.dev/preview.json \
+  || url=https://herdr.dev/latest.json
+
+latest=$(curl -fsS --connect-timeout 2 --max-time 4 "$url" 2>/dev/null \
+  | awk -F'"' '/^[[:space:]]*"version"[[:space:]]*:/ { print $4; exit }')
+current=$(herdr --version 2>/dev/null | awk '{ print $2 }')
+
+[[ -z "$latest" || -z "$current" || "$latest" == "$current" ]] && exit 0
+# Only move forward (e.g. don't "update" a preview build back to stable).
+[[ "$(printf '%s\n%s\n' "$current" "$latest" | sort -V | tail -n1)" == "$current" ]] && exit 0
+
+echo "herdr: updating $current -> $latest"
+herdr update --handoff
