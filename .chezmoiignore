@@ -1,1 +1,5 @@
 README.md
+{{- /* herdr self-updates; only let the external install it when it's missing. */}}
+{{ if stat (joinPath .chezmoi.destDir ".local/bin/herdr") -}}
+.local/bin/herdr
+{{ end -}}
