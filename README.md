@@ -16,8 +16,9 @@ into `~/.local/share/chezmoi`, and applies the dotfiles to your home directory.
 On first apply it also:
 
 - installs `zsh`, `git`, `curl` and powerline fonts (apt / pacman / dnf / brew)
-  and sets zsh as the login shell — `run_once_before_10-install-packages.sh.tmpl`
-  (may prompt for your sudo password)
+  and sets zsh as the login shell — `run_onchange_before_10-install-packages.sh.tmpl`
+  (may prompt for your sudo password). The package list lives in
+  `.chezmoidata/packages.toml`; edit it and `chezmoi apply` to install new packages.
 - clones [oh-my-zsh](https://ohmyz.sh/) into `~/.oh-my-zsh` — `.chezmoiexternal.toml`
   (don't run the oh-my-zsh installer; it would overwrite `~/.zshrc`)
 - installs [herdr](https://herdr.dev) into `~/.local/bin` if missing —
@@ -64,5 +65,7 @@ chezmoi cd                 # open a shell in the source directory
 chezmoi apply -R           # also force-refresh externals (git pull oh-my-zsh)
 ```
 
-`run_once_` scripts run once per machine; editing a script makes it run again.
-To re-run all of them: `chezmoi state delete-bucket --bucket=scriptState`.
+`run_once_` scripts run once per machine; `run_onchange_` scripts re-run whenever
+their rendered content changes (for the package script: when the package list changes).
+To re-run them: `chezmoi state delete-bucket --bucket=scriptState` (run_once)
+and `chezmoi state delete-bucket --bucket=entryState` (run_onchange).

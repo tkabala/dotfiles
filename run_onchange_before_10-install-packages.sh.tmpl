@@ -1,6 +1,7 @@
 #!/bin/bash
 # Install base packages needed by these dotfiles and make zsh the login shell.
-# Runs once per machine (re-runs if this file changes), before dotfiles are applied.
+# Runs before dotfiles are applied, and again whenever this script or the package
+# list in .chezmoidata/packages.toml changes (the list is rendered in below).
 set -euo pipefail
 
 SUDO=""
@@ -11,17 +12,17 @@ if ! command -v brew >/dev/null 2>&1; then
   echo "Homebrew not found; install it from https://brew.sh first" >&2
   exit 1
 fi
-brew install zsh git curl
+brew install {{ concat .packages.common .packages.brew | join " " }}
 {{ else if eq .chezmoi.os "linux" -}}
 {{   if or (eq .chezmoi.osRelease.id "debian" "ubuntu") (contains "debian" (get .chezmoi.osRelease "idLike")) -}}
 $SUDO apt-get update
-$SUDO apt-get install -y zsh git curl fonts-powerline
+$SUDO apt-get install -y {{ concat .packages.common .packages.apt | join " " }}
 {{   else if or (eq .chezmoi.osRelease.id "arch") (contains "arch" (get .chezmoi.osRelease "idLike")) -}}
-$SUDO pacman -Sy --needed --noconfirm zsh git curl powerline-fonts
+$SUDO pacman -Sy --needed --noconfirm {{ concat .packages.common .packages.pacman | join " " }}
 {{   else if eq .chezmoi.osRelease.id "fedora" -}}
-$SUDO dnf install -y zsh git curl powerline-fonts util-linux-user
+$SUDO dnf install -y {{ concat .packages.common .packages.dnf | join " " }}
 {{   else -}}
-echo "Unsupported distro '{{ .chezmoi.osRelease.id }}'; install zsh, git and curl manually" >&2
+echo "Unsupported distro '{{ .chezmoi.osRelease.id }}'; install manually: {{ .packages.common | join " " }}" >&2
 {{   end -}}
 {{ end -}}
 

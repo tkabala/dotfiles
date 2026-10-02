@@ -1,0 +1,12 @@
+# Packages installed by run_onchange_before_10-install-packages.sh.tmpl.
+# Edit and run `chezmoi apply`: the script re-runs whenever this list changes.
+#
+# common  - same name in every package manager
+# <mgr>   - extras / distro-specific names for that package manager
+
+[packages]
+common = ["zsh", "git", "curl"]
+apt    = ["fonts-powerline"]
+pacman = ["powerline-fonts"]
+dnf    = ["powerline-fonts", "util-linux-user"]
+brew   = []
