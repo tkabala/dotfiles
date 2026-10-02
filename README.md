@@ -22,6 +22,9 @@ On first apply it also:
   (don't run the oh-my-zsh installer; it would overwrite `~/.zshrc`)
 - installs [herdr](https://herdr.dev) into `~/.local/bin` if missing —
   `run_once_after_20-install-herdr.sh`
+- writes `~/.ssh/authorized_keys` from your GitHub public keys
+  (`github.com/tkabala.keys`) — `private_dot_ssh/private_authorized_keys.tmpl`.
+  The file is fully managed: add new keys on GitHub, then `chezmoi apply`.
 
 ## herdr
 

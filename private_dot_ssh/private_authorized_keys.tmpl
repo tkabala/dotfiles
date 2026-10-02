@@ -1,0 +1,5 @@
+# Managed by chezmoi: public keys from https://github.com/tkabala.keys
+# Manual edits are overwritten on `chezmoi apply`.
+{{ range gitHubKeys "tkabala" -}}
+{{ .Key }}
+{{ end -}}
