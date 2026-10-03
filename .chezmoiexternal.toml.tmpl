@@ -20,3 +20,18 @@
     type = "file"
     url = "https://github.com/herdrdev/herdr/releases/latest/download/herdr-{{ $os }}-{{ $arch }}"
     executable = true
+
+# delta (git pager): not in Debian bookworm's apt, so on Linux pull the release
+# binary. Pinned because release asset names include the version; bump to update.
+# macOS gets it from Homebrew (.chezmoidata/packages.toml).
+{{- if eq .chezmoi.os "linux" }}
+{{-   $deltaVersion := "0.19.2" }}
+{{-   $deltaTarget := "x86_64-unknown-linux-musl" }}
+{{-   if eq .chezmoi.arch "arm64" }}{{ $deltaTarget = "aarch64-unknown-linux-gnu" }}{{ end }}
+[".local/bin/delta"]
+    type = "archive-file"
+    url = "https://github.com/dandavison/delta/releases/download/{{ $deltaVersion }}/delta-{{ $deltaVersion }}-{{ $deltaTarget }}.tar.gz"
+    path = "delta"
+    stripComponents = 1
+    executable = true
+{{- end }}
