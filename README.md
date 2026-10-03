@@ -24,6 +24,9 @@ On first apply it also:
 - installs [herdr](https://herdr.dev) into `~/.local/bin` if missing — a chezmoi
   external in `.chezmoiexternal.toml.tmpl`, ignored via `.chezmoiignore` once the
   binary exists so herdr's own updater owns it from then on
+- installs [delta](https://github.com/dandavison/delta) (the git pager set in
+  `~/.gitconfig`) into `~/.local/bin` on Linux — a pinned external in
+  `.chezmoiexternal.toml.tmpl` (bump `$deltaVersion` to update); Homebrew on macOS
 - writes `~/.ssh/authorized_keys` from your GitHub public keys
   (`github.com/tkabala.keys`) — `private_dot_ssh/private_authorized_keys.tmpl`.
   The file is fully managed: add new keys on GitHub, then `chezmoi apply`.
