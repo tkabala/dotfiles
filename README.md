@@ -15,7 +15,7 @@ into `~/.local/share/chezmoi`, and applies the dotfiles to your home directory.
 
 On first apply it also:
 
-- installs `zsh`, `git`, `curl` and powerline fonts (apt / pacman / dnf / brew)
+- installs `zsh`, `git`, `curl`, `git-delta` and powerline fonts (apt / pacman / dnf / brew)
   and sets zsh as the login shell — `run_onchange_before_10-install-packages.sh.tmpl`
   (may prompt for your sudo password). The package list lives in
   `.chezmoidata/packages.toml`; edit it and `chezmoi apply` to install new packages.
@@ -24,9 +24,6 @@ On first apply it also:
 - installs [herdr](https://herdr.dev) into `~/.local/bin` if missing — a chezmoi
   external in `.chezmoiexternal.toml.tmpl`, ignored via `.chezmoiignore` once the
   binary exists so herdr's own updater owns it from then on
-- installs [delta](https://github.com/dandavison/delta) (the git pager set in
-  `~/.gitconfig`) into `~/.local/bin` on Linux — a pinned external in
-  `.chezmoiexternal.toml.tmpl` (bump `$deltaVersion` to update); Homebrew on macOS
 - writes `~/.ssh/authorized_keys` from your GitHub public keys
   (`github.com/tkabala.keys`) — `private_dot_ssh/private_authorized_keys.tmpl`.
   The file is fully managed: add new keys on GitHub, then `chezmoi apply`.
