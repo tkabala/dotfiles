@@ -5,7 +5,7 @@
 # <mgr>   - extras / distro-specific names for that package manager
 
 [packages]
-common = ["zsh", "git", "curl", "git-delta"]
+common = ["zsh", "git", "curl", "git-delta", "eza"]
 apt    = ["fonts-powerline"]
 pacman = ["powerline-fonts"]
 dnf    = ["powerline-fonts", "util-linux-user"]
