@@ -20,3 +20,12 @@
     type = "file"
     url = "https://github.com/herdrdev/herdr/releases/latest/download/herdr-{{ $os }}-{{ $arch }}"
     executable = true
+
+# mise: installed here only when no mise is on the machine yet (see .chezmoiignore),
+# e.g. Debian/Ubuntu, which don't package it. After that `mise self-update` owns
+# the binary; a distro-packaged mise (Arch/Omarchy) is left alone.
+{{- $miseArch := .chezmoi.arch | replace "amd64" "x64" }}
+[".local/bin/mise"]
+    type = "file"
+    url = "https://mise.jdx.dev/mise-latest-{{ $os }}-{{ $miseArch }}"
+    executable = true

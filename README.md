@@ -24,6 +24,9 @@ On first apply it also:
 - installs [herdr](https://herdr.dev) into `~/.local/bin` if missing — a chezmoi
   external in `.chezmoiexternal.toml.tmpl`, ignored via `.chezmoiignore` once the
   binary exists so herdr's own updater owns it from then on
+- installs [mise](https://mise.jdx.dev) into `~/.local/bin` if no `mise` is installed
+  yet (Debian/Ubuntu don't package it) — same external pattern as herdr; `mise
+  self-update` keeps it current. A distro-packaged mise (Arch/Omarchy) is left alone.
 - writes `~/.ssh/authorized_keys` from your GitHub public keys
   (`github.com/tkabala.keys`) — `private_dot_ssh/private_authorized_keys.tmpl`.
   The file is fully managed: add new keys on GitHub, then `chezmoi apply`.

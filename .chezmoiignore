@@ -3,3 +3,7 @@ README.md
 {{ if stat (joinPath .chezmoi.destDir ".local/bin/herdr") -}}
 .local/bin/herdr
 {{ end -}}
+{{- /* Same for mise (mise self-update), and skip it entirely if mise is already installed elsewhere. */}}
+{{ if or (stat (joinPath .chezmoi.destDir ".local/bin/mise")) (lookPath "mise") -}}
+.local/bin/mise
+{{ end -}}
