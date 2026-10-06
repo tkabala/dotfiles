@@ -3,6 +3,7 @@
 #
 # common  - same name in every package manager
 # <mgr>   - extras / distro-specific names for that package manager
+# work    - also installed on work machines (chezmoi's `work` is true); same name everywhere
 
 [packages]
 common = ["zsh", "git", "curl", "jq", "git-delta", "eza", "fzf", "zoxide"]
@@ -10,3 +11,4 @@ apt    = ["fonts-powerline"]
 pacman = ["powerline-fonts"]
 dnf    = ["powerline-fonts", "util-linux-user"]
 brew   = []
+work   = ["glab"]

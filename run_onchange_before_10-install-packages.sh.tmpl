@@ -4,6 +4,8 @@
 # list in .chezmoidata/packages.toml changes (the list is rendered in below).
 set -euo pipefail
 
+{{- $packages := .packages.common }}
+{{- if .work }}{{ $packages = concat $packages .packages.work }}{{ end }}
 SUDO=""
 [ "$(id -u)" -ne 0 ] && SUDO="sudo"
 
@@ -12,17 +14,17 @@ if ! command -v brew >/dev/null 2>&1; then
   echo "Homebrew not found; install it from https://brew.sh first" >&2
   exit 1
 fi
-brew install {{ concat .packages.common .packages.brew | join " " }}
+brew install {{ concat $packages .packages.brew | join " " }}
 {{ else if eq .chezmoi.os "linux" -}}
 {{   if or (eq .chezmoi.osRelease.id "debian" "ubuntu") (contains "debian" (get .chezmoi.osRelease "idLike")) -}}
 $SUDO apt-get update
-$SUDO apt-get install -y {{ concat .packages.common .packages.apt | join " " }}
+$SUDO apt-get install -y {{ concat $packages .packages.apt | join " " }}
 {{   else if or (eq .chezmoi.osRelease.id "arch") (contains "arch" (get .chezmoi.osRelease "idLike")) -}}
-$SUDO pacman -Sy --needed --noconfirm {{ concat .packages.common .packages.pacman | join " " }}
+$SUDO pacman -Sy --needed --noconfirm {{ concat $packages .packages.pacman | join " " }}
 {{   else if eq .chezmoi.osRelease.id "fedora" -}}
-$SUDO dnf install -y {{ concat .packages.common .packages.dnf | join " " }}
+$SUDO dnf install -y {{ concat $packages .packages.dnf | join " " }}
 {{   else -}}
-echo "Unsupported distro '{{ .chezmoi.osRelease.id }}'; install manually: {{ .packages.common | join " " }}" >&2
+echo "Unsupported distro '{{ .chezmoi.osRelease.id }}'; install manually: {{ $packages | join " " }}" >&2
 {{   end -}}
 {{ end -}}
 

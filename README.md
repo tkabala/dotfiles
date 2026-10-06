@@ -15,7 +15,8 @@ into `~/.local/share/chezmoi`, and applies the dotfiles to your home directory.
 
 On first apply it also:
 
-- installs `zsh`, `git`, `curl`, `jq`, `git-delta`, `eza`, `fzf`, `zoxide` and powerline fonts (apt / pacman / dnf / brew)
+- installs `zsh`, `git`, `curl`, `jq`, `git-delta`, `eza`, `fzf`, `zoxide` and powerline fonts (apt / pacman / dnf / brew),
+  plus `glab` on work machines,
   and sets zsh as the login shell — `run_onchange_before_10-install-packages.sh.tmpl`
   (may prompt for your sudo password). The package list lives in
   `.chezmoidata/packages.toml`; edit it and `chezmoi apply` to install new packages.
