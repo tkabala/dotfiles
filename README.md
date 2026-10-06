@@ -71,7 +71,7 @@ model, thinking effort, context bar and compaction count; prompt-cache countdown
 `glab` are optional — the forge is picked from the `origin` host (self-hosted: whichever
 CLI is logged in to it).
 
-`dot_claude/modify_settings.json` sets only the `statusLine` key in
+`dot_claude/modify_private_settings.json` sets only the `statusLine` key in
 `~/.claude/settings.json` and leaves the rest of the file to Claude Code.
 
 - `CLAUDE_STATUSLINE_CACHE_TTL=<seconds>` — prompt cache TTL to count down (default 3600)
