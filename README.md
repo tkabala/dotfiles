@@ -15,7 +15,7 @@ into `~/.local/share/chezmoi`, and applies the dotfiles to your home directory.
 
 On first apply it also:
 
-- installs `zsh`, `git`, `curl`, `git-delta`, `eza`, `fzf`, `zoxide` and powerline fonts (apt / pacman / dnf / brew)
+- installs `zsh`, `git`, `curl`, `jq`, `git-delta`, `eza`, `fzf`, `zoxide` and powerline fonts (apt / pacman / dnf / brew)
   and sets zsh as the login shell — `run_onchange_before_10-install-packages.sh.tmpl`
   (may prompt for your sudo password). The package list lives in
   `.chezmoidata/packages.toml`; edit it and `chezmoi apply` to install new packages.
@@ -59,6 +59,23 @@ chezmoi init git@github.com:tkabala/dotfiles.git   # or: chezmoi init tkabala
 chezmoi diff                                       # preview changes
 chezmoi apply -v                                   # write files to ~
 ```
+
+## Claude Code status line
+
+`~/.claude/statusline.sh` draws Claude Code's status line. It reads the session JSON
+Claude Code pipes in and prints three powerline rows: directory and git state (worktree,
+clean/dirty, branch, +/- lines, ahead/behind, GitHub PR via `gh` or GitLab MR via `glab`);
+model, thinking effort, context bar and compaction count; prompt-cache countdown and
+5-hour/weekly usage with reset times. Needs `jq`, `git` and a powerline font; `gh` and
+`glab` are optional — the forge is picked from the `origin` host (self-hosted: whichever
+CLI is logged in to it).
+
+`dot_claude/modify_settings.json` sets only the `statusLine` key in
+`~/.claude/settings.json` and leaves the rest of the file to Claude Code.
+
+- `CLAUDE_STATUSLINE_CACHE_TTL=<seconds>` — prompt cache TTL to count down (default 3600)
+- `CLAUDE_STATUSLINE_PR_TTL=<seconds>` — how long a PR/MR lookup is cached (default 60)
+- Preview: `echo '{"cwd":"'$PWD'"}' | ~/.claude/statusline.sh`
 
 ## Updating
 
