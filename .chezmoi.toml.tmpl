@@ -1,0 +1,12 @@
+{{- /* Per-machine settings: asked on first `chezmoi init`, stored in ~/.config/chezmoi/chezmoi.toml. */ -}}
+{{- $work := promptBoolOnce . "work" "Is this a work machine" -}}
+{{- $email := "" -}}
+{{- if $work -}}
+{{-   $email = promptStringOnce . "email" "Git email" -}}
+{{- else -}}
+{{-   $email = promptStringOnce . "email" "Git email" "tomasz.kabala@gmail.com" -}}
+{{- end -}}
+
+[data]
+  work = {{ $work }}
+  email = {{ $email | quote }}
