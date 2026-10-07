@@ -11,6 +11,25 @@
     [".oh-my-zsh".pull]
         args = ["--ff-only"]
 
+# Plugins outside oh-my-zsh, loaded through its plugins=() in dot_zshrc
+[".oh-my-zsh/custom/plugins/zsh-autosuggestions"]
+    type = "git-repo"
+    url = "https://github.com/zsh-users/zsh-autosuggestions.git"
+    refreshPeriod = "168h"
+    [".oh-my-zsh/custom/plugins/zsh-autosuggestions".clone]
+        args = ["--depth", "1"]
+    [".oh-my-zsh/custom/plugins/zsh-autosuggestions".pull]
+        args = ["--ff-only"]
+
+[".oh-my-zsh/custom/plugins/zsh-syntax-highlighting"]
+    type = "git-repo"
+    url = "https://github.com/zsh-users/zsh-syntax-highlighting.git"
+    refreshPeriod = "168h"
+    [".oh-my-zsh/custom/plugins/zsh-syntax-highlighting".clone]
+        args = ["--depth", "1"]
+    [".oh-my-zsh/custom/plugins/zsh-syntax-highlighting".pull]
+        args = ["--ff-only"]
+
 # herdr: installed here only when missing (see .chezmoiignore). After that herdr
 # owns the binary and ~/.local/bin/herdr-update-check keeps it current, using
 # `herdr update --handoff` so running sessions move to the new version.
