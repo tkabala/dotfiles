@@ -1,7 +1,9 @@
 #!/bin/sh
 # chezmoi modify script: gets the current ~/.claude/settings.json on stdin and
-# prints the new one. Only the statusLine key is managed here; everything else
-# (hooks, plugins, /config changes) is left to Claude Code.
+# prints the new one. Only statusLine and env.CLAUDE_CODE_SHELL are managed
+# here; everything else (hooks, plugins, /config changes) is left to Claude Code.
+# CLAUDE_CODE_SHELL: run Claude's commands in bash rather than the login shell
+# (zsh), since the commands it writes assume bash semantics.
 current=$(cat)
 [ -n "$current" ] || current='{}'
 # Without jq, or if the file isn't valid JSON, leave it as it is.
@@ -10,4 +12,4 @@ printf '%s\n' "$current" | jq --indent 2 '.statusLine = {
   "command": "~/.claude/statusline.sh",
   "padding": 0,
   "refreshInterval": 10
-}' 2>/dev/null || printf '%s\n' "$current"
+} | .env.CLAUDE_CODE_SHELL = "/bin/bash"' 2>/dev/null || printf '%s\n' "$current"
