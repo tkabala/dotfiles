@@ -7,6 +7,10 @@ README.md
 {{ if or (stat (joinPath .chezmoi.destDir ".local/bin/mise")) (lookPath "mise") -}}
 .local/bin/mise
 {{ end -}}
+{{- /* Same for starship: only when it isn't installed at all. */}}
+{{ if or (stat (joinPath .chezmoi.destDir ".local/bin/starship")) (lookPath "starship") -}}
+.local/bin/starship
+{{ end -}}
 {{- /* Work-only files. */}}
 {{ if not .work -}}
 .config/zsh/50-work.zsh

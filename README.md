@@ -21,7 +21,12 @@ On first apply it also:
   (may prompt for your sudo password). The package list lives in
   `.chezmoidata/packages.toml`; edit it and `chezmoi apply` to install new packages.
 - clones [oh-my-zsh](https://ohmyz.sh/) into `~/.oh-my-zsh` — `.chezmoiexternal.toml`
-  (don't run the oh-my-zsh installer; it would overwrite `~/.zshrc`)
+  (don't run the oh-my-zsh installer; it would overwrite `~/.zshrc`), plus the
+  `zsh-autosuggestions` and `zsh-syntax-highlighting` plugins into its `custom/plugins`
+- installs [starship](https://starship.rs) into `~/.local/bin` if no `starship` is
+  installed yet (Debian 12 / Ubuntu 24.04 and Fedora don't package it) — same external
+  pattern as herdr. The prompt config is `~/.config/starship.toml` (Omarchy's, which
+  uses Nerd Font icons for git status).
 - installs [herdr](https://herdr.dev) into `~/.local/bin` if missing — a chezmoi
   external in `.chezmoiexternal.toml.tmpl`, ignored via `.chezmoiignore` once the
   binary exists so herdr's own updater owns it from then on
@@ -71,7 +76,8 @@ model, thinking effort, context bar and compaction count; prompt-cache countdown
 `glab` are optional — the forge is picked from the `origin` host (self-hosted: whichever
 CLI is logged in to it).
 
-`dot_claude/modify_private_settings.json` sets only the `statusLine` key in
+`dot_claude/modify_private_settings.json` sets only the `statusLine` key and
+`env.CLAUDE_CODE_SHELL=/bin/bash` (Claude's commands run in bash, not zsh) in
 `~/.claude/settings.json` and leaves the rest of the file to Claude Code.
 
 - `CLAUDE_STATUSLINE_CACHE_TTL=<seconds>` — prompt cache TTL to count down (default 3600)
@@ -84,7 +90,7 @@ CLI is logged in to it).
 chezmoi update -v          # pull latest changes and apply
 chezmoi add ~/.somefile    # start tracking a new file
 chezmoi cd                 # open a shell in the source directory
-chezmoi apply -R           # also force-refresh externals (git pull oh-my-zsh)
+chezmoi apply -R           # also force-refresh externals (git pull oh-my-zsh and its plugins)
 ```
 
 `run_once_` scripts run once per machine; `run_onchange_` scripts re-run whenever

@@ -48,3 +48,13 @@
     type = "file"
     url = "https://mise.jdx.dev/mise-latest-{{ $os }}-{{ $miseArch }}"
     executable = true
+
+# starship: installed here only when no starship is on the machine yet (see
+# .chezmoiignore), e.g. Debian 12 / Ubuntu 24.04 and Fedora, which don't package it.
+{{- $starshipTarget := printf "%s-unknown-linux-musl" $arch }}
+{{- if eq .chezmoi.os "darwin" }}{{ $starshipTarget = printf "%s-apple-darwin" $arch }}{{ end }}
+[".local/bin/starship"]
+    type = "archive-file"
+    url = "https://github.com/starship/starship/releases/latest/download/starship-{{ $starshipTarget }}.tar.gz"
+    path = "starship"
+    executable = true
