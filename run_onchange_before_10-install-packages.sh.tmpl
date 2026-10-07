@@ -28,9 +28,15 @@ echo "Unsupported distro '{{ .chezmoi.osRelease.id }}'; install manually: {{ $pa
 {{   end -}}
 {{ end -}}
 
-# Make zsh the default login shell
+# Make zsh the default login shell. Check the account's shell, not $SHELL:
+# that's whatever shell ran chezmoi (bash under Claude Code, for one).
+{{ if eq .chezmoi.os "darwin" -}}
+LOGIN_SHELL="$(dscl . -read "/Users/$(id -un)" UserShell | awk '{print $2}')"
+{{ else -}}
+LOGIN_SHELL="$(getent passwd "$(id -un)" | cut -d: -f7)"
+{{ end -}}
 ZSH_PATH="$(command -v zsh || true)"
-if [ -n "$ZSH_PATH" ] && [ "$(basename "${SHELL:-}")" != "zsh" ]; then
+if [ -n "$ZSH_PATH" ] && [ "$(basename "${LOGIN_SHELL:-}")" != "zsh" ]; then
   grep -qx "$ZSH_PATH" /etc/shells || echo "$ZSH_PATH" | $SUDO tee -a /etc/shells >/dev/null
   # via sudo so chsh doesn't prompt for the user's password (no tty during apply)
   $SUDO chsh -s "$ZSH_PATH" "$(id -un)" || echo "chsh failed; run: chsh -s $ZSH_PATH" >&2
