@@ -1,32 +1,68 @@
-add_newline = true
+# Agnoster-style powerline prompt (needs a Nerd/Powerline font):
+#   [ ✘ ⚙ user@host ] > [ (venv) ~/full/path ] > [ branch ±✚ ] >
+# Black context, blue directory, git green when clean and yellow when dirty.
+# The git segment is ~/.config/starship/agnoster-git, because a starship module
+# can't change its color with the repo state.
+add_newline = false
 command_timeout = 200
-format = "[$directory$git_branch$git_status]($style)$character"
+format = """\
+[ ](bg:black)$status$jobs$username[@](bg:black)$hostname[ ](bg:black)\
+[\ue0b0](fg:black bg:blue)$python$directory\
+${custom.git_clean}${custom.git_dirty}${custom.git_none} """
 
-[character]
-error_symbol = "[✗](bold cyan)"
-success_symbol = "[❯](bold cyan)"
+[status]
+disabled = false
+format = "[$symbol]($style)"
+symbol = "✘ "
+success_symbol = ""
+style = "fg:red bg:black"
+
+[jobs]
+format = "[$symbol ]($style)"
+symbol = "⚙"
+style = "fg:cyan bg:black"
+
+[username]
+show_always = true
+format = "[$user]($style)"
+style_user = "bg:black"
+style_root = "fg:yellow bg:black"
+
+[hostname]
+ssh_only = false
+format = "[$hostname]($style)"
+style = "bg:black"
+
+[python]
+format = "[( \\($virtualenv\\))]($style)"
+style = "fg:black bg:blue"
 
 [directory]
-truncation_length = 2
-truncation_symbol = "…/"
-repo_root_style = "bold cyan"
-repo_root_format = "[$repo_root]($repo_root_style)[$path]($style)[$read_only]($read_only_style) "
+format = "[ $path ]($style)[$read_only]($read_only_style)"
+style = "fg:black bg:blue"
+read_only = " \uf023"
+read_only_style = "fg:black bg:blue"
+truncation_length = 0
+truncate_to_repo = false
 
-[git_branch]
-format = "[$branch]($style) "
-style = "italic cyan"
+[custom.git_clean]
+when = "$HOME/.config/starship/agnoster-git clean"
+command = "$HOME/.config/starship/agnoster-git"
+shell = ["sh"]
+ignore_timeout = true
+format = "[\ue0b0](fg:blue bg:green)[ $output ](fg:black bg:green)[\ue0b0](fg:green)"
 
-[git_status]
-format     = '[$all_status]($style)'
-style      = "cyan"
-ahead      = "⇡${count} "
-diverged   = "⇕⇡${ahead_count}⇣${behind_count} "
-behind     = "⇣${count} "
-conflicted = " "
-up_to_date = " "
-untracked  = "? "
-modified   = " "
-stashed    = ""
-staged     = ""
-renamed    = ""
-deleted    = ""
+[custom.git_dirty]
+when = "$HOME/.config/starship/agnoster-git dirty"
+command = "$HOME/.config/starship/agnoster-git"
+shell = ["sh"]
+ignore_timeout = true
+format = "[\ue0b0](fg:blue bg:yellow)[ $output ](fg:black bg:yellow)[\ue0b0](fg:yellow)"
+
+# Outside a repo the prompt ends on the directory segment. The command only
+# has to print something, or starship hides the module.
+[custom.git_none]
+when = "$HOME/.config/starship/agnoster-git none"
+command = "echo end"
+shell = ["sh"]
+format = "[\ue0b0](fg:blue)"

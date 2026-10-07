@@ -26,8 +26,8 @@ On first apply it also:
   `zsh-autosuggestions` and `zsh-syntax-highlighting` plugins into its `custom/plugins`
 - installs [starship](https://starship.rs) into `~/.local/bin` if no `starship` is
   installed yet (Debian 12 / Ubuntu 24.04 and Fedora don't package it) — same external
-  pattern as herdr. The prompt config is `~/.config/starship.toml` (Omarchy's, which
-  uses Nerd Font icons for git status).
+  pattern as herdr. The prompt config is `~/.config/starship.toml`, an agnoster-style powerline
+  prompt (needs a Nerd Font); its git segment comes from `~/.config/starship/agnoster-git`.
 - installs [herdr](https://herdr.dev) into `~/.local/bin` if missing — a chezmoi
   external in `.chezmoiexternal.toml.tmpl`, ignored via `.chezmoiignore` once the
   binary exists so herdr's own updater owns it from then on

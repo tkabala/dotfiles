@@ -1,0 +1,42 @@
+#!/bin/sh
+# Git segment for the agnoster-style starship prompt (~/.config/starship.toml).
+#   agnoster-git clean|dirty|none  exit 0 if the repo state matches (for `when`)
+#   agnoster-git                   print the segment text, like agnoster's prompt_git
+
+dirty() {
+  [ -n "$(git status --porcelain --ignore-submodules=dirty 2>/dev/null | head -n 1)" ]
+}
+
+case "$1" in
+  none)  ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; exit ;;
+  clean) git rev-parse --is-inside-work-tree >/dev/null 2>&1 && ! dirty; exit ;;
+  dirty) dirty; exit ;;
+esac
+
+# Branch, else tag, else short sha; the branch symbol shows ahead/behind.
+if ref=$(git symbolic-ref --short HEAD 2>/dev/null); then
+  set -- $(git rev-list --left-right --count '@{upstream}...HEAD' 2>/dev/null)
+  if [ "${1:-0}" -gt 0 ] && [ "${2:-0}" -gt 0 ]; then char='⇅'
+  elif [ "${2:-0}" -gt 0 ]; then char='↱'
+  elif [ "${1:-0}" -gt 0 ]; then char='↰'
+  else char=''
+  fi
+  out="$char $ref"
+elif tag=$(git describe --exact-match --tags HEAD 2>/dev/null); then
+  out="◈ $tag"
+else
+  out="➦ $(git rev-parse --short HEAD 2>/dev/null)"
+fi
+
+marks=''
+git diff --quiet --ignore-submodules=dirty 2>/dev/null || marks="±"
+git diff --cached --quiet --ignore-submodules=dirty 2>/dev/null || marks="$marks✚"
+[ -n "$marks" ] && out="$out $marks"
+
+git_dir=$(git rev-parse --git-dir 2>/dev/null)
+if [ -e "$git_dir/BISECT_LOG" ]; then out="$out <B>"
+elif [ -e "$git_dir/MERGE_HEAD" ]; then out="$out >M<"
+elif [ -e "$git_dir/rebase-merge" ] || [ -e "$git_dir/rebase-apply" ]; then out="$out >R>"
+fi
+
+printf '%s\n' "$out"
