@@ -22,7 +22,8 @@ eval "$(jq -r '
       end;
   def num: try tonumber catch null;
   def pct: if . == null then "" else "\(. * 10 | round / 10)%" end;
-  def kilo: if . >= 1000 then "\(. / 1000 | round)k" else "\(. | round)" end;
+  def kilo: if . >= 999500 then "\(. / 100000 | round / 10)M"
+    elif . >= 1000 then "\(. / 1000 | round)k" else "\(. | round)" end;
   def window(f): (.rate_limits // {} | f // {}) as $l
     | [($l.used_percentage | num | pct),
        ($l.resets_at | num | if . == null then "" else . - now | dur end)];
