@@ -15,7 +15,8 @@ into `~/.local/share/chezmoi`, and applies the dotfiles to your home directory.
 
 On first apply it also:
 
-- installs `zsh`, `git`, `curl`, `jq`, `git-delta`, `eza`, `fzf`, `zoxide` and powerline fonts (apt / pacman / dnf / brew),
+- installs `zsh`, `git`, `curl`, `jq`, `git-delta`, `eza`, `fzf`, `zoxide`, `ripgrep`, `fd`,
+  a C compiler, `neovim` (except apt) and powerline fonts (apt / pacman / dnf / brew),
   plus `glab` on work machines,
   and sets zsh as the login shell — `run_onchange_before_10-install-packages.sh.tmpl`
   (may prompt for your sudo password). The package list lives in
@@ -33,6 +34,10 @@ On first apply it also:
 - installs [mise](https://mise.jdx.dev) into `~/.local/bin` if no `mise` is installed
   yet (Debian/Ubuntu don't package it) — same external pattern as herdr; `mise
   self-update` keeps it current. A distro-packaged mise (Arch/Omarchy) is left alone.
+- on Debian/Ubuntu, whose neovim is too old for LazyVim, installs the upstream
+  neovim release into `~/.local/opt/nvim` (linked from `~/.local/bin/nvim`), refreshed
+  weekly by chezmoi. The LazyVim config in `~/.config/nvim` is tracked except
+  `lazy-lock.json` and Omarchy's theme files; `lazyvim.json` is only created if missing.
 - writes `~/.ssh/authorized_keys` from your GitHub public keys
   (`github.com/tkabala.keys`) — `private_dot_ssh/private_authorized_keys.tmpl`.
   The file is fully managed: add new keys on GitHub, then `chezmoi apply`.
