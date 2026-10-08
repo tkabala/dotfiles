@@ -9,11 +9,13 @@
 # LazyVim, so .chezmoiexternal.toml.tmpl installs the upstream release there.
 # ripgrep, fd and a C compiler are what LazyVim needs besides git, fzf and curl.
 # bat is installed as `batcat` on Debian/Ubuntu; ~/.config/zsh handles both names.
+# command-not-found / pkgfile / PackageKit-command-not-found back the oh-my-zsh
+# command-not-found plugin (Homebrew has its handler built in).
 
 [packages]
 common = ["zsh", "git", "curl", "jq", "git-delta", "eza", "fzf", "zoxide", "ripgrep", "bat"]
-apt    = ["fonts-powerline", "fd-find", "build-essential"]
-pacman = ["powerline-fonts", "neovim", "fd", "gcc"]
-dnf    = ["powerline-fonts", "util-linux-user", "neovim", "fd-find", "gcc"]
+apt    = ["fonts-powerline", "fd-find", "build-essential", "command-not-found"]
+pacman = ["powerline-fonts", "neovim", "fd", "gcc", "pkgfile"]
+dnf    = ["powerline-fonts", "util-linux-user", "neovim", "fd-find", "gcc", "PackageKit-command-not-found"]
 brew   = ["neovim", "fd"]
 work   = ["glab"]

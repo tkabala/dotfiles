@@ -19,8 +19,14 @@ brew install {{ concat $packages .packages.brew | join " " }}
 {{   if or (eq .chezmoi.osRelease.id "debian" "ubuntu") (contains "debian" (get .chezmoi.osRelease "idLike")) -}}
 $SUDO apt-get update
 $SUDO apt-get install -y {{ concat $packages .packages.apt | join " " }}
+# command-not-found's database is built by an apt update hook it installs,
+# so update again now that the hook is there.
+$SUDO apt-get update
 {{   else if or (eq .chezmoi.osRelease.id "arch") (contains "arch" (get .chezmoi.osRelease "idLike")) -}}
 $SUDO pacman -Sy --needed --noconfirm {{ concat $packages .packages.pacman | join " " }}
+# pkgfile (command-not-found): build its file database once, then keep it fresh daily.
+[ -n "$(ls -A /var/cache/pkgfile 2>/dev/null)" ] || $SUDO pkgfile -u
+$SUDO systemctl enable --now pkgfile-update.timer || echo "couldn't enable pkgfile-update.timer; run: sudo pkgfile -u now and then" >&2
 {{   else if eq .chezmoi.osRelease.id "fedora" -}}
 $SUDO dnf install -y {{ concat $packages .packages.dnf | join " " }}
 {{   else -}}
