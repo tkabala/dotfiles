@@ -36,3 +36,8 @@
 	helper =
 	helper = !gh auth git-credential
 {{- end }}
+
+# Machine-local settings (credential helpers, etc.); untracked, skipped if missing.
+# Keep last so it overrides everything above.
+[include]
+	path = ~/.gitconfig.local

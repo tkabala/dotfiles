@@ -40,7 +40,10 @@ On first apply it also:
   `lazy-lock.json` and Omarchy's theme files; `lazyvim.json` is only created if missing.
 - writes `~/.ssh/authorized_keys` from your GitHub public keys
   (`github.com/tkabala.keys`) — `private_dot_ssh/private_authorized_keys.tmpl`.
-  The file is fully managed: add new keys on GitHub, then `chezmoi apply`.
+  This happens on every machine, so all your devices can SSH into each other.
+  The file is fully replaced on each apply, so keys added by hand are lost:
+  GitHub is the single place to add or revoke a device's key, followed by
+  `chezmoi apply` on each machine.
 
 ## herdr
 
@@ -70,6 +73,26 @@ chezmoi init git@github.com:tkabala/dotfiles.git   # or: chezmoi init tkabala
 chezmoi diff                                       # preview changes
 chezmoi apply -v                                   # write files to ~
 ```
+
+## Machine-local overrides
+
+This repo is public, so per-machine settings live in untracked files that chezmoi
+doesn't manage:
+
+- `~/.config/zsh/*-local.zsh` (e.g. `60-local.zsh`) — per-machine env, aliases, `PATH`
+  and tool init. `~/.zshrc` sources `~/.config/zsh/*.zsh` in name order, so pick a
+  number above the managed `10-`–`30-` files to load after them. The directory isn't
+  `exact_`, so chezmoi leaves unmanaged files in it alone.
+- `~/.gitconfig.local` — per-machine git settings (credential helpers, etc.),
+  included at the end of `~/.gitconfig` so it overrides the repo's settings.
+  Git skips the include if the file is missing.
+
+`~/.ssh/authorized_keys` is not a local override: it's managed on every machine
+(see above).
+
+When applying to an existing machine for the first time, back up the dotfiles it
+already has (including `~/.ssh/authorized_keys`) and run `chezmoi diff` before
+`chezmoi apply`.
 
 ## Claude Code status line
 
