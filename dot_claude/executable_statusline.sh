@@ -2,12 +2,10 @@
 # Claude Code status line.
 # Claude Code pipes session JSON on stdin and shows whatever this prints:
 #   1: cwd · worktree · clean/dirty · branch · +/- lines · ahead/behind · PR
-#   2: model · thinking effort · context bar · compactions
-#   3: prompt-cache countdown · 5h usage + reset · weekly usage + reset
-# Needs jq and git; gh / glab are optional (PR / MR segment). Keep it bash 3.2-safe for macOS.
-#
-#   CLAUDE_STATUSLINE_CACHE_TTL=<seconds>  prompt cache TTL to count down (default 3600)
-#   CLAUDE_STATUSLINE_PR_TTL=<seconds>     how long a PR lookup is reused (default 60)
+#   2: session name · model · thinking effort · context bar · compactions
+#   3: prompt-cache countdown + hit ratio · cache misses · 5h usage + reset · weekly usage + reset
+# Needs jq and git. The PR / MR comes from Claude Code's own lookup, which needs gh or glab
+# logged in. Keep it bash 3.2-safe for macOS.
 
 input=$(cat)
 command -v jq >/dev/null 2>&1 || { echo "statusline: jq not found"; exit 0; }
@@ -21,6 +19,7 @@ eval "$(jq -r '
         | [if $d > 0 then "\($d)d" else empty end, if $h > 0 then "\($h)h" else empty end, "\($m)m"] | join(" ")
       end;
   def num: try tonumber catch null;
+  def mmss: floor | "\(. / 60 | floor):\(. % 60 | tostring | if length < 2 then "0" + . else . end)";
   def pct: if . == null then "" else "\(. * 10 | round / 10)%" end;
   def kilo: if . >= 999500 then "\(. / 100000 | round / 10)M"
     elif . >= 1000 then "\(. / 1000 | round)k" else "\(. | round)" end;
@@ -36,8 +35,26 @@ eval "$(jq -r '
   | ($cw.used_percentage | num // (if $used and $size then $used * 100 / $size else null end)) as $ctx_pct
   | window(.five_hour) as [$five, $five_reset]
   | window(.seven_day) as [$week, $week_reset]
+  | (.prompt_cache // {}) as $pc
   | @sh "cwd=\(.workspace.current_dir // .cwd // "")",
     @sh "transcript=\(.transcript_path // "")",
+    @sh "session_name=\(.session_name // "" | if length > 40 then .[:39] + "…" else . end)",
+    @sh "worktree=\(.workspace.git_worktree // "")",
+    @sh "pr=\(.pr // {} | if .number == null then "" else
+        (if .kind == "mr" then "!" else "#" end) + "\(.number) "
+        + if .review_state == "draft" then "draft"
+          else "open" + ({approved: " ✓", changes_requested: " ✗", pending: " ?"}[.review_state // ""] // "") end
+      end)",
+    @sh "pr_url=\(.pr.url // "")",
+    @sh "cache=\(if $pc.caching_observed != true then ""
+        else (if $pc.warm == true and ($pc.expires_at | num) != null and $pc.expires_at > now
+              then $pc.expires_at - now | mmss else "cold" end)
+          + ($pc.hit_ratio | num | if . == null then "" else " · \(. * 100 | round)% hit" end)
+        end)",
+    @sh "cache_miss=\(($pc.misses | num // 0) as $n | if $n <= 0 then ""
+        else "\($n) miss\(if $n > 1 then "es" else "" end)"
+          + ($pc.last_miss_cause.causes // [] | if length > 0 then ": " + join(", ") else "" end)
+        end)",
     @sh "model=\(.model | if type == "object" then .display_name // .id else . end // "")",
     @sh "effort=\(.effort.level // "")",
     @sh "ctx_pct=\($ctx_pct // "" | if . == "" then . else round end)",
@@ -88,56 +105,14 @@ seg "$BLUE" "$DARK" "${cwd/#"$HOME"/\~}"
 
 git_() { git -C "$cwd" --no-optional-locks "$@" 2>/dev/null; }
 
-# Print the open review for the current branch: "#12 open ✓" (GitHub PR) or
-# "!12 open" (GitLab MR). The forge comes from the origin remote: a github/gitlab
-# origin host picks gh/glab; any other host (self-hosted, or an SSH alias resolved
-# via `ssh -G`) uses whichever CLI is logged in to it; no origin tries both.
-review_lookup() {
-  local url host ssh_url providers p out
-  url=$(git_ remote get-url origin)
-  host=$(sed -E 's#^[A-Za-z+]+://##; s#^[^@/]*@##; s#[:/].*##' <<<"$url" | tr '[:upper:]' '[:lower:]')
-  case "$url" in
-    *://*) [ "${url%%://*}" = ssh ] && ssh_url=1 || ssh_url= ;;
-    *) ssh_url=1 ;;
-  esac
-  case "$host" in *github* | *gitlab*) ;; ?*)
-    [ -n "$ssh_url" ] && host=$(ssh -G "$host" 2>/dev/null | awk '$1 == "hostname" { print tolower($2); exit }') ;;
-  esac
-  case "$host" in
-    "") providers="gh glab" ;;
-    *github*) providers=gh ;;
-    *gitlab*) providers=glab ;;
-    *) for p in glab gh; do
-         command -v "$p" >/dev/null 2>&1 && "$p" auth status --hostname "$host" >/dev/null 2>&1 && providers="$providers $p"
-       done ;;
-  esac
-  for p in $providers; do
-    command -v "$p" >/dev/null 2>&1 || continue
-    case "$p" in
-      gh) gh pr view --json number,state,isDraft,reviewDecision --jq '
-            "#\(.number) " + (if .isDraft then "draft" else .state | ascii_downcase end)
-            + ({APPROVED: " ✓", CHANGES_REQUESTED: " ✗", REVIEW_REQUIRED: " ?"}[.reviewDecision // ""] // "")
-          ' && return ;;
-      glab) out=$(glab mr view --output json) && [ -n "$out" ] && jq -r '
-            "!\(.iid) " + (if .draft then "draft" else {opened: "open"}[.state] // .state end)
-            + ({mergeable: " ✓", not_approved: " ?", requested_changes: " ✗"}[.detailed_merge_status // ""] // "")
-          ' <<<"$out" && return ;;
-    esac
-  done
-}
-if paths=$(git_ rev-parse --show-toplevel --absolute-git-dir --git-common-dir); then
-  top=$(sed -n 1p <<<"$paths") gitdir=$(sed -n 2p <<<"$paths") common=$(sed -n 3p <<<"$paths")
-  status=$(git_ status --porcelain=v2 --branch)
+if status=$(git_ status --porcelain=v2 --branch); then
   branch=$(sed -n 's/^# branch\.head //p' <<<"$status")
   read -r ahead behind <<<"$(sed -n 's/^# branch\.ab +\([0-9]*\) -\([0-9]*\)$/\1 \2/p' <<<"$status")"
   shortstat=$(git_ diff --shortstat HEAD)
   added=$(sed -n 's/.* \([0-9]*\) insertion.*/\1/p' <<<"$shortstat")
   removed=$(sed -n 's/.* \([0-9]*\) deletion.*/\1/p' <<<"$shortstat")
 
-  # A linked worktree's git dir lives under the main repo's common dir.
-  case "$common" in /*) ;; *) common="$cwd/$common" ;; esac
-  [ "$gitdir" != "$(cd "$common" 2>/dev/null && pwd -P)" ] && seg "$ORANGE" "$DARK" "𖠰 ${top##*/}"
-
+  seg "$ORANGE" "$DARK" "${worktree:+𖠰 $worktree}"
   if grep -qv '^#' <<<"$status"; then seg "$GREY" "$LIGHT" "✗"; else seg "$GREY" "$LIGHT" "✓"; fi
   seg "$GREEN" "$DARK" "⎇ $branch"
   [ -n "$shortstat" ] && seg "$AMBER" "$DARK" "+${added:-0} -${removed:-0}"
@@ -145,24 +120,15 @@ if paths=$(git_ rev-parse --show-toplevel --absolute-git-dir --git-common-dir); 
   [ "${ahead:-0}" -gt 0 ] && ab="↑$ahead"
   [ "${behind:-0}" -gt 0 ] && ab="${ab:+$ab }↓$behind"
   seg "$PINK" "$DARK" "$ab"
-
-  # PR/MR for this branch, looked up in the background and cached so gh/glab never
-  # block the status line; the first refresh after a branch switch shows nothing.
-  if { command -v gh || command -v glab; } >/dev/null 2>&1 && [ "$branch" != "(detached)" ]; then
-    cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/claude-statusline"
-    pr_cache="$cache_dir/pr-$(printf '%s' "$top@$branch" | tr -c 'A-Za-z0-9._-' '_')"
-    if [ -z "$(find "$pr_cache" -mmin "-$(((${CLAUDE_STATUSLINE_PR_TTL:-60} + 59) / 60))" 2>/dev/null)" ]; then
-      mkdir -p "$cache_dir" && touch "$pr_cache"
-      (cd "$top" && review_lookup >"$pr_cache.tmp" 2>/dev/null
-        mv "$pr_cache.tmp" "$pr_cache") </dev/null >/dev/null 2>&1 &
-    fi
-    seg "$PURPLE" "$DARK" "$(cat "$pr_cache" 2>/dev/null)"
-  fi
 fi
+# Open PR / MR for the branch, as an OSC 8 link when Claude Code knows its URL.
+[ -n "$pr" ] && [ -n "$pr_url" ] && pr=$'\e]8;;'"$pr_url"$'\e\\'"$pr"$'\e]8;;\e\\'
+seg "$PURPLE" "$DARK" "$pr"
 flush
 
 # --- line 2: model and context ----------------------------------------------
 
+seg "$LIGHT" "$DARK" "$session_name"
 seg "$GREY" "$LIGHT" "$model"
 seg "$PURPLE" "$DARK" "${effort:+Thinking: $effort}"
 if [ -n "$ctx_pct" ]; then
@@ -179,23 +145,8 @@ flush
 
 # --- line 3: prompt cache and usage limits ----------------------------------
 
-# Countdown from the last main-thread assistant reply that touched the cache.
-# "live" while a turn is still running (a user entry newer than any reply).
-if [ -f "$transcript" ]; then
-  cache=$(tail -c 262144 "$transcript" | jq -Rnr --argjson ttl "${CLAUDE_STATUSLINE_CACHE_TTL:-3600}" '
-    [inputs | try fromjson catch empty
-      | select(.isSidechain != true and (.type == "assistant" or .type == "user"))] | reverse
-    | if length == 0 then empty
-      elif .[0].type == "user" then "live"
-      else first(.[]
-          | select(.type == "assistant" and .isApiErrorMessage != true and .timestamp != null)
-          | select(.message.usage == null
-                   or (.message.usage.cache_read_input_tokens // 0) + (.message.usage.cache_creation_input_tokens // 0) > 0)
-          | ($ttl - 5 - (now - (.timestamp | sub("\\.[0-9]+"; "") | fromdate)))
-          | if . <= 0 then "cold" else "\(. / 60 | floor):\(. % 60 | floor | tostring | if length < 2 then "0" + . else . end)" end)
-      end' 2>/dev/null)
-  seg "$GREY" "$LIGHT" "${cache:+Cache: $cache}"
-fi
+seg "$GREY" "$LIGHT" "${cache:+Cache: $cache}"
+seg "$RED" "$DARK" "$cache_miss"
 seg "$BLUE" "$DARK" "${five:+Session: $five}"
 seg "$GREY" "$LIGHT" "${five_reset:+Reset: $five_reset}"
 seg "$GREEN" "$DARK" "${week:+Weekly: $week}"
