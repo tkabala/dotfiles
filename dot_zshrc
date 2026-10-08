@@ -7,7 +7,7 @@ ZSH_THEME=""
 
 # zsh-autosuggestions and zsh-syntax-highlighting come from .chezmoiexternal;
 # zsh-syntax-highlighting has to stay last.
-plugins=(git python zsh-autosuggestions zsh-syntax-highlighting)
+plugins=(git python sudo command-not-found zsh-autosuggestions zsh-syntax-highlighting)
 
 # python plugin: auto-activate .venv / venv on cd
 PYTHON_VENV_NAME=".venv"
