@@ -1,20 +1,43 @@
 #!/bin/bash
-# Install base packages needed by these dotfiles and make zsh the login shell.
+# Install base packages needed by these dotfiles, install Homebrew and the packages
+# it manages, and make zsh the login shell.
 # Runs before dotfiles are applied, and again whenever this script or the package
-# list in .chezmoidata/packages.toml changes (the list is rendered in below).
+# lists in .chezmoidata/packages.toml change (the lists are rendered in below).
 set -euo pipefail
 
 {{- $packages := .packages.common }}
-{{- if .work }}{{ $packages = concat $packages .packages.work }}{{ end }}
+{{- $homebrew := .homebrew.common }}
+{{- if .work }}{{ $homebrew = concat $homebrew .homebrew.work }}{{ end }}
 SUDO=""
 [ "$(id -u)" -ne 0 ] && SUDO="sudo"
 
+# Install Homebrew if it's missing, and put it on PATH for the rest of this script.
+# Its installer refuses to run as root on Linux (outside containers), so skip it there.
+enable_homebrew() {
+  local brew
+  for brew in "$(command -v brew || true)" /opt/homebrew/bin/brew /usr/local/bin/brew \
+      /home/linuxbrew/.linuxbrew/bin/brew "$HOME/.linuxbrew/bin/brew"; do
+    [ -x "$brew" ] && eval "$("$brew" shellenv)" && return 0
+  done
+{{- if ne .chezmoi.os "darwin" }}
+  if [ "$(id -u)" -eq 0 ]; then
+    echo "Homebrew won't install as root; skipping it{{ if $homebrew }} and its packages ({{ $homebrew | join " " }}){{ end }}" >&2
+    return 1
+  fi
+{{- end }}
+  # Refresh sudo first: the installer runs non-interactively and only uses sudo -n.
+  sudo -v
+  NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  for brew in /opt/homebrew/bin/brew /usr/local/bin/brew /home/linuxbrew/.linuxbrew/bin/brew; do
+    [ -x "$brew" ] && eval "$("$brew" shellenv)" && return 0
+  done
+  echo "Homebrew installed, but no brew found" >&2
+  return 1
+}
+
 {{ if eq .chezmoi.os "darwin" -}}
-if ! command -v brew >/dev/null 2>&1; then
-  echo "Homebrew not found; install it from https://brew.sh first" >&2
-  exit 1
-fi
-brew install {{ concat $packages .packages.brew | join " " }}
+enable_homebrew
+brew install {{ concat $packages .packages.brew $homebrew | join " " }}
 {{ else if eq .chezmoi.os "linux" -}}
 {{   if or (eq .chezmoi.osRelease.id "debian" "ubuntu") (contains "debian" (get .chezmoi.osRelease "idLike")) -}}
 $SUDO apt-get update
@@ -31,8 +54,16 @@ $SUDO systemctl enable --now pkgfile-update.timer || echo "couldn't enable pkgfi
 $SUDO dnf install -y {{ concat $packages .packages.dnf | join " " }}
 {{   else -}}
 echo "Unsupported distro '{{ .chezmoi.osRelease.id }}'; install manually: {{ $packages | join " " }}" >&2
+{{   end }}
+# Homebrew after the distro packages: it needs their curl, git and compiler.
+{{   if $homebrew -}}
+if enable_homebrew; then
+  brew install {{ $homebrew | join " " }}
+fi
+{{   else -}}
+enable_homebrew || true
 {{   end -}}
-{{ end -}}
+{{ end }}
 
 # Make zsh the default login shell. Check the account's shell, not $SHELL:
 # that's whatever shell ran chezmoi (bash under Claude Code, for one).

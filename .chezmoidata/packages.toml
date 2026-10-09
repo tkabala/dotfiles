@@ -3,7 +3,6 @@
 #
 # common  - same name in every package manager
 # <mgr>   - extras / distro-specific names for that package manager
-# work    - also installed on work machines (chezmoi's `work` is true); same name everywhere
 #
 # neovim isn't in the apt list: Debian 12 / Ubuntu 24.04 ship one too old for
 # LazyVim, so .chezmoiexternal.toml.tmpl installs the upstream release there.
@@ -11,11 +10,19 @@
 # bat is installed as `batcat` on Debian/Ubuntu; ~/.config/zsh handles both names.
 # command-not-found / pkgfile / PackageKit-command-not-found back the oh-my-zsh
 # command-not-found plugin (Homebrew has its handler built in).
+# procps and file are what Homebrew on Linux needs besides curl, git and a compiler.
 
 [packages]
 common = ["zsh", "git", "curl", "jq", "git-delta", "eza", "fzf", "zoxide", "ripgrep", "bat"]
-apt    = ["fonts-powerline", "fd-find", "build-essential", "command-not-found"]
-pacman = ["powerline-fonts", "neovim", "fd", "gcc", "pkgfile"]
-dnf    = ["powerline-fonts", "util-linux-user", "neovim", "fd-find", "gcc", "PackageKit-command-not-found"]
+apt    = ["fonts-powerline", "fd-find", "build-essential", "command-not-found", "procps", "file"]
+pacman = ["powerline-fonts", "neovim", "fd", "gcc", "pkgfile", "procps-ng", "file"]
+dnf    = ["powerline-fonts", "util-linux-user", "neovim", "fd-find", "gcc", "PackageKit-command-not-found", "procps-ng", "file"]
 brew   = ["neovim", "fd"]
+
+# Installed with Homebrew on every OS, Linux included, instead of the distro's
+# package manager: for tools the distros don't package or ship too old.
+# common - every machine
+# work   - work machines only (chezmoi's `work` is true)
+[homebrew]
+common = []
 work   = ["glab"]

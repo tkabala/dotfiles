@@ -18,10 +18,14 @@ On first apply it also:
 - installs `zsh`, `git`, `curl`, `jq`, `git-delta`, `eza`, `fzf`, `zoxide`, `ripgrep`, `fd`, `bat`,
   a C compiler, `neovim` (except apt), powerline fonts and the distro's command-not-found
   handler (`pkgfile`, `command-not-found` or PackageKit's) (apt / pacman / dnf / brew),
-  plus `glab` on work machines,
   and sets zsh as the login shell — `run_onchange_before_10-install-packages.sh.tmpl`
   (may prompt for your sudo password). The package list lives in
   `.chezmoidata/packages.toml`; edit it and `chezmoi apply` to install new packages.
+- installs [Homebrew](https://brew.sh) if it's missing (on Linux too, into
+  `/home/linuxbrew/.linuxbrew`), then the packages under `[homebrew]` in
+  `.chezmoidata/packages.toml` with it on every OS — so far `glab` on work machines.
+  `~/.zshrc` puts brew on `PATH` (after `~/.local/bin`) and its completions on `fpath`.
+  Homebrew refuses to install as root on Linux, so root accounts skip it with a warning.
 - clones [oh-my-zsh](https://ohmyz.sh/) into `~/.oh-my-zsh` — `.chezmoiexternal.toml`
   (don't run the oh-my-zsh installer; it would overwrite `~/.zshrc`), plus the
   `zsh-autosuggestions` and `zsh-syntax-highlighting` plugins into its `custom/plugins`

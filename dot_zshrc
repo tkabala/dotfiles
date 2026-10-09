@@ -1,3 +1,15 @@
+# Homebrew (macOS, and Linux under /home/linuxbrew): its PATH, MANPATH and
+# completions. Before the PATH line so ~/.local/bin still comes first, and before
+# oh-my-zsh so compinit picks up the completions.
+for brew in /opt/homebrew/bin/brew /usr/local/bin/brew /home/linuxbrew/.linuxbrew/bin/brew ~/.linuxbrew/bin/brew; do
+  if [[ -x $brew ]]; then
+    eval "$($brew shellenv)"
+    fpath=($HOMEBREW_PREFIX/share/zsh/site-functions $fpath)
+    break
+  fi
+done
+unset brew
+
 export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
 
 # Oh My Zsh: completion, history and key bindings, plus the plugins below.
