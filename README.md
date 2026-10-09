@@ -87,6 +87,12 @@ doesn't manage:
 - `~/.gitconfig.local` — per-machine git settings (credential helpers, etc.),
   included at the end of `~/.gitconfig` so it overrides the repo's settings.
   Git skips the include if the file is missing.
+- `~/.ssh/config.local` — per-machine SSH hosts and overrides, included at the top
+  of `~/.ssh/config` (ssh uses the first value it finds, so it wins over the repo's
+  `Host *` defaults). SSH skips the include if the file is missing. The managed
+  `Host *` sends `LC_ALL=C.UTF-8` so servers without the client's locale (e.g.
+  `en_GB.UTF-8`, forwarded by the system's `SendEnv LANG LC_*`) don't print
+  locale warnings.
 
 `~/.ssh/authorized_keys` is not a local override: it's managed on every machine
 (see above).
