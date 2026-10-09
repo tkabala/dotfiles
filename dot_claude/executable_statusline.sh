@@ -4,7 +4,7 @@
 #   1: cwd · worktree · clean/dirty · branch · +/- lines · ahead/behind · PR
 #   2: session name · model · thinking effort · context bar · compactions
 #   3: prompt-cache countdown + hit ratio · cache misses · 5h usage + reset · weekly usage + reset
-# Needs jq and git. The PR / MR comes from Claude Code's own lookup, which needs gh or glab
+# Needs jq, git and a Nerd Font. The PR / MR comes from Claude Code's own lookup, which needs gh or glab
 # logged in. Keep it bash 3.2-safe for macOS.
 
 input=$(cat)
@@ -65,43 +65,86 @@ eval "$(jq -r '
 ' <<<"$input" 2>/dev/null)"
 cwd=${cwd:-$PWD}
 
-# --- powerline rendering ----------------------------------------------------
+# --- lualine-style rendering ------------------------------------------------
+# Rows span the full terminal width: segments queued with `L` hug the left edge, `R` the
+# right edge, and the gap between is filled with the bar background. Colors are ANSI
+# palette indices (0-15), not hex, so the terminal's color scheme themes the bar.
 
 RESET=$'\e[0m'
 SEP=$'\xee\x82\xb0' CAP=$'\xee\x82\xb2'  # powerline U+E0B0 / U+E0B2 (needs a powerline/Nerd font)
-fg() { printf '\e[38;2;%d;%d;%dm' $((16#${1:0:2})) $((16#${1:2:2})) $((16#${1:4:2})); }
-bg() { printf '\e[48;2;%d;%d;%dm' $((16#${1:0:2})) $((16#${1:2:2})) $((16#${1:4:2})); }
+fg() { printf '\e[38;5;%sm' "$1"; }
+bg() { if [ "$1" = default ]; then printf '\e[49m'; else printf '\e[48;5;%sm' "$1"; fi; }
 
-# Palette.
-DARK=0b0b0b LIGHT=c3c2b7 GREY=3a3a38 BLUE=3987e5 ORANGE=d95926
-GREEN=199e70 AMBER=c98500 PINK=d55181 PURPLE=9085e9 RED=e66767
+# Palette: ANSI indices. BAR is the filler between the left and right groups: "default" keeps
+# the terminal's own background; a number (e.g. 8 for a lighter grey bar) paints it.
+BAR=default DARK=0 LIGHT=7 GREY=8 BLUE=4 ORANGE=3 GREEN=2 AMBER=11 PINK=5 PURPLE=13 RED=1 CYAN=6
+# Nerd Font icons (single-width, drawn in each pill's text color).
+I_DIR= I_TREE= I_BRANCH= I_PR=
+I_SESSION=󰭹 I_MODEL=󰚩 I_THINK=󰧑 I_CTX=󰍛
+I_CACHE=󰆼 I_WARN= I_HOURGLASS=󰔟 I_CAL=󰃭 I_RESET=󰑓
+MARGIN=${STATUSLINE_MARGIN:-4}  # columns left unused: Claude Code truncates rows wider than its status area
 
-seg_bg=() seg_fg=() seg_text=()
-# seg <bg> <fg> <text> — queue a segment; empty text skips it.
-seg() {
-  [ -n "$3" ] || return 0
-  seg_bg+=("$1") seg_fg+=("$2") seg_text+=("$3")
+# Terminal width: $COLUMNS, then the tty of this process or an ancestor (the status line
+# runs without a controlling terminal), then tput; 120 as a last resort.
+term_width() {
+  local w=${COLUMNS:-} pid=$$ t
+  if [ -z "$w" ]; then
+    while [ "${pid:-0}" -gt 1 ]; do
+      t=$(ps -o tty= -p "$pid" 2>/dev/null | tr -d ' ')
+      if [ -n "$t" ] && [ "$t" != "?" ] && [ "$t" != "??" ] && [ -r "/dev/${t#/dev/}" ]; then
+        w=$(stty size <"/dev/${t#/dev/}" 2>/dev/null | cut -d' ' -f2)
+        [ -n "$w" ] && break
+      fi
+      pid=$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ')
+    done
+  fi
+  [ -n "$w" ] || w=$(tput cols 2>/dev/null)
+  case $w in '' | *[!0-9]* | 0) w=120 ;; esac
+  echo "$w"
 }
-# Print the queued segments as one powerline row and start a new row.
+WIDTH=$(term_width)
+
+seg_side=() seg_bg=() seg_fg=() seg_text=() seg_url=()
+# seg <L|R> <bg> <fg> <text> [url] — queue a segment; empty text skips it.
+seg() {
+  [ -n "$4" ] || return 0
+  seg_side+=("$1") seg_bg+=("$2") seg_fg+=("$3") seg_text+=("$4") seg_url+=("${5:-}")
+}
+# Print the queued segments as one full-width row and start a new one.
 flush() {
-  local n=${#seg_text[@]} i out
+  local n=${#seg_text[@]} i body left="" right="" lw=0 rw=0 prev
   [ "$n" -gt 0 ] || return 0
-  out="$(fg "${seg_bg[0]}")$CAP"
+  # Left group: each pill ends in a separator that blends into the next pill (or the bar).
+  prev=""
   for ((i = 0; i < n; i++)); do
-    out+="$(bg "${seg_bg[i]}")$(fg "${seg_fg[i]}") ${seg_text[i]} "
-    if [ $((i + 1)) -lt "$n" ]; then
-      out+="$(fg "${seg_bg[i]}")$(bg "${seg_bg[i + 1]}")$SEP"
-    else
-      out+="$RESET$(fg "${seg_bg[i]}")$SEP$RESET"
-    fi
+    [ "${seg_side[i]}" = L ] || continue
+    body=${seg_text[i]}
+    [ -n "${seg_url[i]}" ] && body=$'\e]8;;'"${seg_url[i]}"$'\e\\'"$body"$'\e]8;;\e\\'
+    if [ -n "$prev" ]; then left+="$(fg "$prev")$(bg "${seg_bg[i]}")$SEP"; lw=$((lw + 1)); fi
+    left+="$(bg "${seg_bg[i]}")$(fg "${seg_fg[i]}") $body "
+    lw=$((lw + ${#seg_text[i]} + 2))
+    prev=${seg_bg[i]}
   done
-  printf '%s\n' "$out"
-  seg_bg=() seg_fg=() seg_text=()
+  [ -n "$prev" ] && { left+="$(fg "$prev")$(bg "$BAR")$SEP"; lw=$((lw + 1)); }
+  # Right group: each pill starts with a cap that blends from the previous pill (or the bar).
+  prev=$BAR
+  for ((i = 0; i < n; i++)); do
+    [ "${seg_side[i]}" = R ] || continue
+    body=${seg_text[i]}
+    [ -n "${seg_url[i]}" ] && body=$'\e]8;;'"${seg_url[i]}"$'\e\\'"$body"$'\e]8;;\e\\'
+    right+="$(fg "${seg_bg[i]}")$(bg "$prev")$CAP$(bg "${seg_bg[i]}")$(fg "${seg_fg[i]}") $body "
+    rw=$((rw + ${#seg_text[i]} + 3))
+    prev=${seg_bg[i]}
+  done
+  local gap=$((WIDTH - MARGIN - lw - rw))
+  [ "$gap" -lt 1 ] && gap=1
+  printf '%s%s%*s%s%s\n' "$left" "$(bg "$BAR")" "$gap" "" "$right" "$RESET"
+  seg_side=() seg_bg=() seg_fg=() seg_text=() seg_url=()
 }
 
 # --- line 1: location and git -----------------------------------------------
 
-seg "$BLUE" "$DARK" "${cwd/#"$HOME"/\~}"
+seg L "$BLUE" "$DARK" "$I_DIR ${cwd/#"$HOME"/\~}"
 
 git_() { git -C "$cwd" --no-optional-locks "$@" 2>/dev/null; }
 
@@ -112,43 +155,42 @@ if status=$(git_ status --porcelain=v2 --branch); then
   added=$(sed -n 's/.* \([0-9]*\) insertion.*/\1/p' <<<"$shortstat")
   removed=$(sed -n 's/.* \([0-9]*\) deletion.*/\1/p' <<<"$shortstat")
 
-  seg "$ORANGE" "$DARK" "${worktree:+𖠰 $worktree}"
-  if grep -qv '^#' <<<"$status"; then seg "$GREY" "$LIGHT" "✗"; else seg "$GREY" "$LIGHT" "✓"; fi
-  seg "$GREEN" "$DARK" "⎇ $branch"
-  [ -n "$shortstat" ] && seg "$AMBER" "$DARK" "+${added:-0} -${removed:-0}"
+  seg L "$ORANGE" "$DARK" "${worktree:+$I_TREE $worktree}"
+  if grep -qv '^#' <<<"$status"; then seg L "$GREY" "$LIGHT" "✗"; else seg L "$GREY" "$LIGHT" "✓"; fi
+  seg L "$GREEN" "$DARK" "$I_BRANCH $branch"
+  [ -n "$shortstat" ] && seg L "$AMBER" "$DARK" "+${added:-0} -${removed:-0}"
   ab=""
   [ "${ahead:-0}" -gt 0 ] && ab="↑$ahead"
   [ "${behind:-0}" -gt 0 ] && ab="${ab:+$ab }↓$behind"
-  seg "$PINK" "$DARK" "$ab"
+  seg L "$PINK" "$DARK" "$ab"
 fi
-# Open PR / MR for the branch, as an OSC 8 link when Claude Code knows its URL.
-[ -n "$pr" ] && [ -n "$pr_url" ] && pr=$'\e]8;;'"$pr_url"$'\e\\'"$pr"$'\e]8;;\e\\'
-seg "$PURPLE" "$DARK" "$pr"
+# Open PR / MR for the branch, right-aligned, as an OSC 8 link when Claude Code knows its URL.
+seg R "$PURPLE" "$DARK" "${pr:+$I_PR $pr}" "$pr_url"
 flush
 
 # --- line 2: model and context ----------------------------------------------
 
-seg "$LIGHT" "$DARK" "$session_name"
-seg "$GREY" "$LIGHT" "$model"
-seg "$PURPLE" "$DARK" "${effort:+Thinking: $effort}"
+seg L "$LIGHT" "$DARK" "${session_name:+$I_SESSION $session_name}"
+seg L "$GREY" "$LIGHT" "${model:+$I_MODEL $model}"
+seg L "$PURPLE" "$DARK" "${effort:+$I_THINK $effort}"
 if [ -n "$ctx_pct" ]; then
   width=16 filled=$(((ctx_pct * 16 + 50) / 100))
   [ "$filled" -gt "$width" ] && filled=$width
   bar=$(printf "%${filled}s" "" | sed 's/ /█/g')$(printf "%$((width - filled))s" "" | sed 's/ /░/g')
-  seg "$GREY" "$LIGHT" "[$bar] $ctx_tokens ($ctx_pct%)"
+  seg R "$GREY" "$LIGHT" "$I_CTX $bar $ctx_tokens ($ctx_pct%)"
 fi
 if [ -f "$transcript" ]; then
   compactions=$(grep -c '"subtype":"compact_boundary"' "$transcript")
-  [ "${compactions:-0}" -gt 0 ] && seg "$RED" "$DARK" "↻ $compactions"
+  [ "${compactions:-0}" -gt 0 ] && seg R "$RED" "$DARK" "↻ $compactions"
 fi
 flush
 
 # --- line 3: prompt cache and usage limits ----------------------------------
 
-seg "$GREY" "$LIGHT" "${cache:+Cache: $cache}"
-seg "$RED" "$DARK" "$cache_miss"
-seg "$BLUE" "$DARK" "${five:+Session: $five}"
-seg "$GREY" "$LIGHT" "${five_reset:+Reset: $five_reset}"
-seg "$GREEN" "$DARK" "${week:+Weekly: $week}"
-seg "$GREY" "$LIGHT" "${week_reset:+Weekly reset: $week_reset}"
+seg L "$GREY" "$LIGHT" "${cache:+$I_CACHE $cache}"
+seg L "$RED" "$DARK" "${cache_miss:+$I_WARN $cache_miss}"
+seg R "$BLUE" "$DARK" "${five:+$I_HOURGLASS 5h $five}"
+seg R "$GREY" "$LIGHT" "${five_reset:+$I_RESET $five_reset}"
+seg R "$GREEN" "$DARK" "${week:+$I_CAL 7d $week}"
+seg R "$GREY" "$LIGHT" "${week_reset:+$I_RESET $week_reset}"
 flush

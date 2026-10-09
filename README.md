@@ -97,13 +97,15 @@ already has (including `~/.ssh/authorized_keys`) and run `chezmoi diff` before
 
 ## Claude Code status line
 
-`~/.claude/statusline.sh` draws Claude Code's status line. It reads the session JSON
-Claude Code pipes in and prints three powerline rows: directory and git state (worktree,
-clean/dirty, branch, +/- lines, ahead/behind, open PR/MR as a link); session name, model,
-thinking effort, context bar and compaction count; prompt-cache countdown and hit ratio,
-cache misses with their cause, and 5-hour/weekly usage with reset times. Needs `jq`, `git`
-and a powerline font. The PR/MR and cache figures come from Claude Code itself, so the PR
-segment needs `gh` or `glab` logged in for Claude Code's own lookup.
+`~/.claude/statusline.sh` draws Claude Code's status line as three full-width, lualine-style
+rows: pills hug the left and right edges and the gap between is filled with a bar. Left/right:
+directory, worktree, clean/dirty, branch, +/- lines, ahead/behind | open PR/MR as a link;
+session name, model, thinking effort | context bar and compaction count; prompt-cache
+countdown, hit ratio and misses | 5-hour/weekly usage with reset times. Needs `jq`, `git` and
+a Nerd Font (pills carry icons). Colors are ANSI palette indices, so the bar follows the terminal's color
+scheme. Width comes from `$COLUMNS` or the terminal's tty (120 if neither is found);
+`STATUSLINE_MARGIN` (default 4, since Claude Code truncates rows wider than its status area) leaves columns free at the right edge. The PR/MR and cache
+figures come from Claude Code itself, so the PR segment needs `gh` or `glab` logged in.
 
 `dot_claude/modify_private_settings.json` sets only the `statusLine` key and
 `env.CLAUDE_CODE_SHELL=/bin/bash` (Claude's commands run in bash, not zsh) in
