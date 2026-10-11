@@ -39,7 +39,8 @@ enable_homebrew() {
 enable_homebrew
 brew install {{ concat $packages .packages.brew $homebrew | join " " }}
 {{ else if eq .chezmoi.os "linux" -}}
-{{   if or (eq .chezmoi.osRelease.id "debian" "ubuntu") (contains "debian" (get .chezmoi.osRelease "idLike")) -}}
+{{-  $apt := or (eq .chezmoi.osRelease.id "debian" "ubuntu") (contains "debian" (get .chezmoi.osRelease "idLike")) }}
+{{   if $apt -}}
 $SUDO apt-get update
 $SUDO apt-get install -y {{ concat $packages .packages.apt | join " " }}
 # command-not-found's database is built by an apt update hook it installs,
@@ -59,6 +60,19 @@ echo "Unsupported distro '{{ .chezmoi.osRelease.id }}'; install manually: {{ $pa
 {{   if $homebrew -}}
 if enable_homebrew; then
   brew install {{ $homebrew | join " " }}
+{{-    if and $apt (has "gh" $homebrew) }}
+else
+  # No Homebrew (root): gh from GitHub's own apt repo, as Debian/Ubuntu's gh is years old.
+  echo "Installing gh from GitHub's apt repo instead" >&2
+  $SUDO install -d -m 755 /etc/apt/keyrings
+  curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+    | $SUDO tee /etc/apt/keyrings/githubcli-archive-keyring.gpg >/dev/null
+  $SUDO chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
+  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+    | $SUDO tee /etc/apt/sources.list.d/github-cli.list >/dev/null
+  $SUDO apt-get update
+  $SUDO apt-get install -y gh
+{{-    end }}
 fi
 {{   else -}}
 enable_homebrew || true

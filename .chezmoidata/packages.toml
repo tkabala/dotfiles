@@ -23,6 +23,7 @@ brew   = ["neovim", "fd"]
 # package manager: for tools the distros don't package or ship too old.
 # common - every machine
 # work   - work machines only (chezmoi's `work` is true)
+# Where Homebrew can't install (root on Linux), Debian/Ubuntu get gh from GitHub's apt repo.
 [homebrew]
-common = []
+common = ["gh"]
 work   = ["glab"]

@@ -23,7 +23,9 @@ On first apply it also:
   `.chezmoidata/packages.toml`; edit it and `chezmoi apply` to install new packages.
 - installs [Homebrew](https://brew.sh) if it's missing (on Linux too, into
   `/home/linuxbrew/.linuxbrew`), then the packages under `[homebrew]` in
-  `.chezmoidata/packages.toml` with it on every OS — so far `glab` on work machines.
+  `.chezmoidata/packages.toml` with it on every OS — so far `gh` everywhere and `glab` on
+  work machines. Where Homebrew is skipped (root), Debian/Ubuntu get `gh` from
+  [GitHub's apt repo](https://cli.github.com/packages) instead.
   `~/.zshrc` puts brew on `PATH` (after `~/.local/bin`) and its completions on `fpath`.
   Homebrew refuses to install as root on Linux, so root accounts skip it with a warning.
 - clones [oh-my-zsh](https://ohmyz.sh/) into `~/.oh-my-zsh` — `.chezmoiexternal.toml`
