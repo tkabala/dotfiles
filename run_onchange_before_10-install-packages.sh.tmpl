@@ -26,7 +26,9 @@ enable_homebrew() {
   fi
 {{- end }}
   # Refresh sudo first: the installer runs non-interactively and only uses sudo -n.
-  sudo -v
+  # Skip it where sudo already works without a password: sudo -v still prompts if
+  # any matching sudoers rule (e.g. %sudo's) lacks NOPASSWD, even with one that has it.
+  sudo -n true 2>/dev/null || sudo -v
   NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
   for brew in /opt/homebrew/bin/brew /usr/local/bin/brew /home/linuxbrew/.linuxbrew/bin/brew; do
     [ -x "$brew" ] && eval "$("$brew" shellenv)" && return 0
