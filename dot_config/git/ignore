@@ -1,0 +1,13 @@
+# Global gitignore: git reads ~/.config/git/ignore in every repo.
+# Only files that are never meant to be committed anywhere.
+
+# OS clutter
+.DS_Store
+Thumbs.db
+
+# Editor leftovers
+*.swp
+*~
+
+# Per-user Claude Code settings
+.claude/settings.local.json

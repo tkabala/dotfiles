@@ -1,6 +1,15 @@
 [user]
 	email = {{ .email }}
 	name = Tomasz Kabala
+{{- if stat (joinPath .chezmoi.homeDir ".ssh/id_ed25519.pub") }}
+	signingkey = ~/.ssh/id_ed25519.pub
+
+# Sign commits and tags with that SSH key, so GitHub shows them as Verified
+# (the key must also be added on GitHub as a *signing* key). Only on machines
+# that have the key; elsewhere commits would fail to sign.
+[gpg]
+	format = ssh
+{{- end }}
 
 [init]
 	defaultBranch = main
@@ -8,14 +17,41 @@
 [fetch]
 	prune = true
 
+[pull]
+	rebase = true            # replay local commits on top of upstream instead of a merge commit
+
 [push]
 	autoSetupRemote = true
 
 [merge]
 	conflictstyle = zdiff3
 
+[rerere]
+	enabled = true           # remember how conflicts were resolved...
+	autoupdate = true        # ...and stage the reused resolution
+
 [diff]
+	algorithm = histogram    # clearer diffs when code is moved or edited
 	colorMoved = default
+	mnemonicPrefix = true    # i/ w/ c/ instead of a/ b/ in diff headers
+
+[commit]
+	verbose = true           # show the diff in the commit message editor
+{{- if stat (joinPath .chezmoi.homeDir ".ssh/id_ed25519.pub") }}
+	gpgsign = true
+{{- end }}
+
+[column]
+	ui = auto                # list branches, tags etc. in columns
+
+[branch]
+	sort = -committerdate    # most recently used branches first
+
+[tag]
+	sort = -version:refname  # v1.10 after v1.9
+{{- if stat (joinPath .chezmoi.homeDir ".ssh/id_ed25519.pub") }}
+	gpgsign = true
+{{- end }}
 
 [core]
 	pager = delta
