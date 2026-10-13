@@ -54,17 +54,6 @@ On first apply it also:
   GitHub is the single place to add or revoke a device's key, followed by
   `chezmoi apply` on each machine.
 
-## herdr
-
-New interactive zsh shells start herdr (not inside herdr itself, VS Code or
-JetBrains terminals). Before launching, `~/.local/bin/herdr-update-check` checks
-herdr's update channel at most once a day and runs `herdr update --handoff` if a
-newer release is out — herdr can't update itself from inside a session.
-
-- `HERDR_NO_AUTOSTART=1 zsh` — a shell without herdr
-- `HERDR_UPDATE_INTERVAL=<seconds>` — change how often to check (default 86400)
-- `herdr-update-check --force` — check now, from a shell outside herdr
-
 ### 2. Or step by step
 
 Install chezmoi (pick one):
@@ -108,6 +97,17 @@ doesn't manage:
 When applying to an existing machine for the first time, back up the dotfiles it
 already has (including `~/.ssh/authorized_keys`) and run `chezmoi diff` before
 `chezmoi apply`.
+
+## herdr
+
+New interactive zsh shells start herdr (not inside herdr itself, VS Code or
+JetBrains terminals). Before launching, `~/.local/bin/herdr-update-check` checks
+herdr's update channel at most once a day and runs `herdr update --handoff` if a
+newer release is out — herdr can't update itself from inside a session.
+
+- `HERDR_NO_AUTOSTART=1 zsh` — a shell without herdr
+- `HERDR_UPDATE_INTERVAL=<seconds>` — change how often to check (default 86400)
+- `herdr-update-check --force` — check now, from a shell outside herdr
 
 ## Claude Code status line
 
