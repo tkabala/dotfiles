@@ -10,3 +10,9 @@
 [data]
   work = {{ $work }}
   email = {{ $email | quote }}
+
+# `chezmoi merge`: three-way merge in nvim's diff mode (chezmoi adds the
+# destination, source and target files after these args).
+[merge]
+  command = "nvim"
+  args = ["-d"]

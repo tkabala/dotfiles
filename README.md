@@ -134,6 +134,8 @@ chezmoi update -v          # pull latest changes and apply
 chezmoi add ~/.somefile    # start tracking a new file
 chezmoi cd                 # open a shell in the source directory
 chezmoi apply -R           # also force-refresh externals (git pull oh-my-zsh and its plugins)
+chezmoi merge ~/.somefile  # file changed both here and in the repo: merge in nvim -d
+chezmoi upgrade            # update chezmoi itself
 ```
 
 `run_once_` scripts run once per machine; `run_onchange_` scripts re-run whenever
