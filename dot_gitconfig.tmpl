@@ -1,15 +1,6 @@
 [user]
 	email = {{ .email }}
 	name = Tomasz Kabala
-{{- if stat (joinPath .chezmoi.homeDir ".ssh/id_ed25519.pub") }}
-	signingkey = ~/.ssh/id_ed25519.pub
-
-# Sign commits and tags with that SSH key, so GitHub shows them as Verified
-# (the key must also be added on GitHub as a *signing* key). Only on machines
-# that have the key; elsewhere commits would fail to sign.
-[gpg]
-	format = ssh
-{{- end }}
 
 [init]
 	defaultBranch = main
@@ -37,9 +28,6 @@
 
 [commit]
 	verbose = true           # show the diff in the commit message editor
-{{- if stat (joinPath .chezmoi.homeDir ".ssh/id_ed25519.pub") }}
-	gpgsign = true
-{{- end }}
 
 [column]
 	ui = auto                # list branches, tags etc. in columns
@@ -49,9 +37,6 @@
 
 [tag]
 	sort = -version:refname  # v1.10 after v1.9
-{{- if stat (joinPath .chezmoi.homeDir ".ssh/id_ed25519.pub") }}
-	gpgsign = true
-{{- end }}
 
 [core]
 	pager = delta
