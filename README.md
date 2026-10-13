@@ -127,6 +127,18 @@ figures come from Claude Code itself, so the PR segment needs `gh` or `glab` log
 
 - Preview: `echo '{"cwd":"'$PWD'"}' | ~/.claude/statusline.sh`
 
+## Testing
+
+`.github/workflows/test.yml` applies the dotfiles to fresh Debian 13, Ubuntu 24.04
+(as a work machine), Fedora and Arch containers and a macOS runner, on every push
+and weekly, then checks that zsh starts cleanly with all the tools —
+`.github/scripts/test-apply.sh`. To run one locally:
+
+```sh
+docker run --rm -v "$PWD:/src:ro" -e GITHUB_TOKEN="$(gh auth token)" debian:13 \
+  /src/.github/scripts/test-apply.sh false   # true: as a work machine
+```
+
 ## Updating
 
 ```sh

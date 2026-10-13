@@ -1,0 +1,45 @@
+# Apply the dotfiles to fresh machines and check the result:
+# .github/scripts/test-apply.sh, in clean Linux containers and on macOS.
+name: test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  # Weekly too: distro packages and tool releases change without a commit here.
+  schedule:
+    - cron: "0 6 * * 1"
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: debian:13
+            work: false
+          - image: ubuntu:24.04
+            work: true
+          - image: fedora:latest
+            work: false
+          - image: archlinux:latest
+            work: false
+    name: ${{ matrix.image }}${{ matrix.work && ' (work)' || '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply and check
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: >
+          docker run --rm -v "$PWD:/src:ro" -e GITHUB_TOKEN
+          ${{ matrix.image }} /src/.github/scripts/test-apply.sh ${{ matrix.work }}
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply and check
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: .github/scripts/test-apply.sh false
