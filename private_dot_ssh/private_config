@@ -7,3 +7,19 @@ Host *
     # client's locale (e.g. en_GB.UTF-8), so perl, apt etc. warn "Setting locale
     # failed". LC_ALL overrides all of them; needs OpenSSH 7.8+ and AcceptEnv LC_*.
     SetEnv LC_ALL=C.UTF-8
+
+    # Check every 60s that the server is still there: keeps idle sessions from
+    # being dropped by routers, and gives up on a dead one after 3 missed replies.
+    ServerAliveInterval 60
+    ServerAliveCountMax 3
+
+    # Reuse one connection per host: later ssh/scp/git commands to the same host
+    # skip the handshake and start instantly. The connection stays open 10 minutes
+    # after the last session ends. `ssh -O exit <host>` closes it (e.g. if it hangs).
+    ControlMaster auto
+    ControlPath ~/.ssh/cm-%C
+    ControlPersist 10m
+
+    # If an ssh-agent is running, hand it the key on first use, so a key with a
+    # passphrase only asks for it once. Does nothing without an agent.
+    AddKeysToAgent yes
