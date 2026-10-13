@@ -21,13 +21,8 @@ On first apply it also:
   and sets zsh as the login shell — `run_onchange_before_10-install-packages.sh.tmpl`
   (may prompt for your sudo password). The package list lives in
   `.chezmoidata/packages.toml`; edit it and `chezmoi apply` to install new packages.
-- installs [Homebrew](https://brew.sh) if it's missing (on Linux too, into
-  `/home/linuxbrew/.linuxbrew`), then the packages under `[homebrew]` in
-  `.chezmoidata/packages.toml` with it on every OS — so far `gh` everywhere and `glab` on
-  work machines. Where Homebrew is skipped (root), Debian/Ubuntu get `gh` from
-  [GitHub's apt repo](https://cli.github.com/packages) instead.
-  `~/.zshrc` puts brew on `PATH` (after `~/.local/bin`) and its completions on `fpath`.
-  Homebrew refuses to install as root on Linux, so root accounts skip it with a warning.
+- on macOS, installs [Homebrew](https://brew.sh) first if it's missing: it's the package
+  manager used there. Linux doesn't use Homebrew.
 - clones [oh-my-zsh](https://ohmyz.sh/) into `~/.oh-my-zsh` — `.chezmoiexternal.toml`
   (don't run the oh-my-zsh installer; it would overwrite `~/.zshrc`), plus the
   `zsh-autosuggestions` and `zsh-syntax-highlighting` plugins into its `custom/plugins`
@@ -41,10 +36,13 @@ On first apply it also:
 - installs [mise](https://mise.jdx.dev) into `~/.local/bin` if no `mise` is installed
   yet (Debian/Ubuntu don't package it) — same external pattern as herdr; `mise
   self-update` keeps it current. A distro-packaged mise (Arch/Omarchy) is left alone.
-  The global tool list, `~/.config/mise/config.toml`, is tracked too, and
-  `run_onchange_after_20-mise-install.sh.tmpl` runs `mise install` whenever it changes.
+  The global tool list, `~/.config/mise/config.toml`, is tracked too (as
+  `dot_config/mise/config.toml.tmpl`), and `run_onchange_after_20-mise-install.sh.tmpl`
+  runs `mise install` whenever it changes. It holds `gh` on every machine and `glab` on
+  work machines, plus node, go and the rest; `mise up` updates them. `~/.zshrc` activates
+  mise before oh-my-zsh, so the `gh` and `glab` plugins set up their completions.
   `mise use -g` edits the file in your home directory, not the repo: copy the change
-  into `dot_config/mise/config.toml` (or `chezmoi re-add`) so other machines get it.
+  into `dot_config/mise/config.toml.tmpl` so other machines get it.
 - on Debian/Ubuntu, whose neovim is too old for LazyVim, installs the upstream
   neovim release into `~/.local/opt/nvim` (linked from `~/.local/bin/nvim`), refreshed
   weekly by chezmoi. The LazyVim config in `~/.config/nvim` is tracked except

@@ -1,45 +1,24 @@
 #!/bin/bash
-# Install base packages needed by these dotfiles, install Homebrew and the packages
-# it manages, and make zsh the login shell.
+# Install base packages needed by these dotfiles and make zsh the login shell.
 # Runs before dotfiles are applied, and again whenever this script or the package
 # lists in .chezmoidata/packages.toml change (the lists are rendered in below).
+# CLIs the distros don't package or ship too old (gh, glab) come from mise instead:
+# see dot_config/mise/config.toml.tmpl.
 set -euo pipefail
 
 {{- $packages := .packages.common }}
-{{- $homebrew := .homebrew.common }}
-{{- if .work }}{{ $homebrew = concat $homebrew .homebrew.work }}{{ end }}
 SUDO=""
 [ "$(id -u)" -ne 0 ] && SUDO="sudo"
 
-# Install Homebrew if it's missing, and put it on PATH for the rest of this script.
-# Its installer refuses to run as root on Linux (outside containers), so skip it there.
-enable_homebrew() {
-  local brew
-  for brew in "$(command -v brew || true)" /opt/homebrew/bin/brew /usr/local/bin/brew \
-      /home/linuxbrew/.linuxbrew/bin/brew "$HOME/.linuxbrew/bin/brew"; do
-    [ -x "$brew" ] && eval "$("$brew" shellenv)" && return 0
-  done
-{{- if ne .chezmoi.os "darwin" }}
-  if [ "$(id -u)" -eq 0 ]; then
-    echo "Homebrew won't install as root; skipping it{{ if $homebrew }} and its packages ({{ $homebrew | join " " }}){{ end }}" >&2
-    return 1
-  fi
-{{- end }}
-  # Refresh sudo first: the installer runs non-interactively and only uses sudo -n.
-  # Skip it where sudo already works without a password: sudo -v still prompts if
-  # any matching sudoers rule (e.g. %sudo's) lacks NOPASSWD, even with one that has it.
-  sudo -n true 2>/dev/null || sudo -v
-  NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  for brew in /opt/homebrew/bin/brew /usr/local/bin/brew /home/linuxbrew/.linuxbrew/bin/brew; do
-    [ -x "$brew" ] && eval "$("$brew" shellenv)" && return 0
-  done
-  echo "Homebrew installed, but no brew found" >&2
-  return 1
-}
-
 {{ if eq .chezmoi.os "darwin" -}}
-enable_homebrew
-brew install {{ concat $packages .packages.brew $homebrew | join " " }}
+# macOS has no package manager of its own: Homebrew is it.
+if ! command -v brew >/dev/null 2>&1; then
+  NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  for brew in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+    [ -x "$brew" ] && eval "$("$brew" shellenv)" && break
+  done
+fi
+brew install {{ concat $packages .packages.brew | join " " }}
 {{ else if eq .chezmoi.os "linux" -}}
 {{-  $apt := or (eq .chezmoi.osRelease.id "debian" "ubuntu") (contains "debian" (get .chezmoi.osRelease "idLike")) }}
 {{   if $apt -}}
@@ -58,27 +37,6 @@ $SUDO dnf install -y {{ concat $packages .packages.dnf | join " " }}
 {{   else -}}
 echo "Unsupported distro '{{ .chezmoi.osRelease.id }}'; install manually: {{ $packages | join " " }}" >&2
 {{   end }}
-# Homebrew after the distro packages: it needs their curl, git and compiler.
-{{   if $homebrew -}}
-if enable_homebrew; then
-  brew install {{ $homebrew | join " " }}
-{{-    if and $apt (has "gh" $homebrew) }}
-else
-  # No Homebrew (root): gh from GitHub's own apt repo, as Debian/Ubuntu's gh is years old.
-  echo "Installing gh from GitHub's apt repo instead" >&2
-  $SUDO install -d -m 755 /etc/apt/keyrings
-  curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
-    | $SUDO tee /etc/apt/keyrings/githubcli-archive-keyring.gpg >/dev/null
-  $SUDO chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
-  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
-    | $SUDO tee /etc/apt/sources.list.d/github-cli.list >/dev/null
-  $SUDO apt-get update
-  $SUDO apt-get install -y gh
-{{-    end }}
-fi
-{{   else -}}
-enable_homebrew || true
-{{   end -}}
 {{ end }}
 
 # Make zsh the default login shell. Check the account's shell, not $SHELL:
