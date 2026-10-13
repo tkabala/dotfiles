@@ -19,7 +19,7 @@ jobs:
         include:
           - image: debian:13
             work: false
-          - image: ubuntu:24.04
+          - image: ubuntu:26.04
             work: true
           - image: fedora:latest
             work: false

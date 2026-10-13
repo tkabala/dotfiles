@@ -4,8 +4,8 @@
 # common  - same name in every package manager
 # <mgr>   - extras / distro-specific names for that package manager
 #
-# neovim isn't in the apt list: Debian 12 / Ubuntu 24.04 ship one too old for
-# LazyVim, so .chezmoiexternal.toml.tmpl installs the upstream release there.
+# neovim isn't in the apt list: Debian 13 ships 0.10, too old for LazyVim, so
+# .chezmoiexternal.toml.tmpl installs the upstream release on Debian and Ubuntu.
 # ripgrep, fd and a C compiler are what LazyVim needs besides git, fzf and curl.
 # bat is installed as `batcat` on Debian/Ubuntu; ~/.config/zsh handles both names.
 # command-not-found / pkgfile / PackageKit-command-not-found back the oh-my-zsh

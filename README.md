@@ -27,7 +27,7 @@ On first apply it also:
   (don't run the oh-my-zsh installer; it would overwrite `~/.zshrc`), plus the
   `zsh-autosuggestions` and `zsh-syntax-highlighting` plugins into its `custom/plugins`
 - installs [starship](https://starship.rs) into `~/.local/bin` if no `starship` is
-  installed yet (Debian 12 / Ubuntu 24.04 and Fedora don't package it) — same external
+  installed yet (Fedora doesn't package it; it isn't in the apt list) — same external
   pattern as herdr. The prompt config is `~/.config/starship.toml`, an agnoster-style powerline
   prompt (needs a Nerd Font); its git segment comes from `~/.config/starship/agnoster-git`.
 - installs [herdr](https://herdr.dev) into `~/.local/bin` if missing — a chezmoi
@@ -129,7 +129,7 @@ figures come from Claude Code itself, so the PR segment needs `gh` or `glab` log
 
 ## Testing
 
-`.github/workflows/test.yml` applies the dotfiles to fresh Debian 13, Ubuntu 24.04
+`.github/workflows/test.yml` applies the dotfiles to fresh Debian 13, Ubuntu 26.04
 (as a work machine), Fedora and Arch containers and a macOS runner, on every push
 and weekly, then checks that zsh starts cleanly with all the tools —
 `.github/scripts/test-apply.sh`. To run one locally:
