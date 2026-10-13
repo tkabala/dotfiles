@@ -1,0 +1,13 @@
+#!/bin/bash
+# Install the tools listed in ~/.config/mise/config.toml.
+# Runs after dotfiles are applied (so mise and its config are in place), and again
+# whenever that config changes: its hash is rendered in below.
+# mise config hash: {{ include "dot_config/mise/config.toml" | sha256sum }}
+set -euo pipefail
+
+mise=$(command -v mise || echo "$HOME/.local/bin/mise")
+if [ ! -x "$mise" ]; then
+  echo "mise not found; skipping mise install" >&2
+  exit 0
+fi
+"$mise" install --yes

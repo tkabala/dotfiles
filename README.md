@@ -41,6 +41,10 @@ On first apply it also:
 - installs [mise](https://mise.jdx.dev) into `~/.local/bin` if no `mise` is installed
   yet (Debian/Ubuntu don't package it) — same external pattern as herdr; `mise
   self-update` keeps it current. A distro-packaged mise (Arch/Omarchy) is left alone.
+  The global tool list, `~/.config/mise/config.toml`, is tracked too, and
+  `run_onchange_after_20-mise-install.sh.tmpl` runs `mise install` whenever it changes.
+  `mise use -g` edits the file in your home directory, not the repo: copy the change
+  into `dot_config/mise/config.toml` (or `chezmoi re-add`) so other machines get it.
 - on Debian/Ubuntu, whose neovim is too old for LazyVim, installs the upstream
   neovim release into `~/.local/opt/nvim` (linked from `~/.local/bin/nvim`), refreshed
   weekly by chezmoi. The LazyVim config in `~/.config/nvim` is tracked except

@@ -1,0 +1,12 @@
+[tools]
+bun = "latest"
+claude = "latest"
+codex = "latest"
+copilot = "latest"
+gh = "latest"
+go = "1.26.8"
+node = "26.8.1"
+pi = "latest"
+
+[settings.upgrade]
+auto_prune = false
