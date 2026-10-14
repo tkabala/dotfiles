@@ -47,7 +47,7 @@ On first apply it also:
 - on Debian/Ubuntu, whose neovim is too old for LazyVim, installs the upstream
   neovim release into `~/.local/opt/nvim` (linked from `~/.local/bin/nvim`), refreshed
   weekly by chezmoi. The LazyVim config in `~/.config/nvim` is tracked except
-  `lazy-lock.json` and Omarchy's theme files; `lazyvim.json` is only created if missing.
+  `lazy-lock.json` and the desktop's theme plugin files; `lazyvim.json` is only created if missing.
 - writes `~/.ssh/authorized_keys` from your GitHub public keys
   (`github.com/tkabala.keys`) — `private_dot_ssh/private_authorized_keys.tmpl`.
   This happens on every machine, so all your devices can SSH into each other.
