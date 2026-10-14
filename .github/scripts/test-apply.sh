@@ -50,8 +50,8 @@ echo "$shell"
 [ "$(basename "$shell")" = zsh ]
 
 step "interactive zsh starts cleanly and has the tools"
-tools="git nvim fzf zoxide rg bat eza delta starship mise gh"
-[ "$WORK" = true ] && tools="$tools glab java mvn kubectl helm aws govc"
+tools="git nvim fzf zoxide rg bat eza delta starship mise gh uv"
+[ "$WORK" = true ] && tools="$tools glab java mvn kubectl helm aws govc vault"
 # zsh -i without a terminal warns that it can't enable zle; anything else on stderr fails.
 stderr=$(mktemp)
 status=0

@@ -5,6 +5,7 @@ gh = "latest"
 go = "1.26.8"
 node = "24"
 pi = "latest"
+uv = "latest"
 {{- if .work }}
 
 # Work machines
@@ -16,6 +17,7 @@ aws-cli = "latest"
 # govc isn't in mise's registry: it ships in the govmomi releases.
 "aqua:vmware/govmomi/govc" = "latest"
 glab = "latest"
+vault = "latest"
 # playwright-cli, for the Claude Code skill of the same name
 "npm:@playwright/cli" = "latest"
 {{- end }}

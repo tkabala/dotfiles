@@ -38,9 +38,9 @@ On first apply it also:
   self-update` keeps it current. A distro-packaged mise (Arch/Omarchy) is left alone.
   The global tool list, `~/.config/mise/config.toml`, is tracked too (as
   `dot_config/mise/config.toml.tmpl`), and `run_onchange_after_20-mise-install.sh.tmpl`
-  runs `mise install` whenever it changes. It holds `gh`, node, go and the rest on every
+  runs `mise install` whenever it changes. It holds `gh`, node, go, uv and the rest on every
   machine. Work machines also get java (Corretto 21), maven, kubectl, helm, aws-cli, govc,
-  `glab` and playwright-cli. `mise up` updates them. `~/.zshrc` activates
+  vault, `glab` and playwright-cli. `mise up` updates them. `~/.zshrc` activates
   mise before oh-my-zsh, so the `gh` and `glab` plugins set up their completions.
   `mise use -g` edits the file in your home directory, not the repo: copy the change
   into `dot_config/mise/config.toml.tmpl` so other machines get it.
