@@ -39,8 +39,8 @@ On first apply it also:
   The global tool list, `~/.config/mise/config.toml`, is tracked too (as
   `dot_config/mise/config.toml.tmpl`), and `run_onchange_after_20-mise-install.sh.tmpl`
   runs `mise install` whenever it changes. It holds `gh`, node, go and the rest on every
-  machine. Work machines also get java (Corretto 21), maven, kubectl, helm, aws-cli, govc
-  and `glab`. `mise up` updates them. `~/.zshrc` activates
+  machine. Work machines also get java (Corretto 21), maven, kubectl, helm, aws-cli, govc,
+  `glab` and playwright-cli. `mise up` updates them. `~/.zshrc` activates
   mise before oh-my-zsh, so the `gh` and `glab` plugins set up their completions.
   `mise use -g` edits the file in your home directory, not the repo: copy the change
   into `dot_config/mise/config.toml.tmpl` so other machines get it.
@@ -122,8 +122,9 @@ scheme. Width comes from `$COLUMNS` or the terminal's tty (120 if neither is fou
 `STATUSLINE_MARGIN` (default 4, since Claude Code truncates rows wider than its status area) leaves columns free at the right edge. The PR/MR and cache
 figures come from Claude Code itself, so the PR segment needs `gh` or `glab` logged in.
 
-`dot_claude/modify_private_settings.json` sets only the `statusLine` key and
-`env.CLAUDE_CODE_SHELL=/bin/bash` (Claude's commands run in bash, not zsh) in
+`dot_claude/modify_private_settings.json` sets only the `statusLine` key,
+`env.CLAUDE_CODE_SHELL=/bin/bash` (Claude's commands run in bash, not zsh) and
+`env.DISABLE_AUTOUPDATER=1` (Claude Code comes from mise, `mise up claude` updates it) in
 `~/.claude/settings.json` and leaves the rest of the file to Claude Code.
 
 - Preview: `echo '{"cwd":"'$PWD'"}' | ~/.claude/statusline.sh`
