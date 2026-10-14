@@ -2,12 +2,21 @@
 bun = "latest"
 claude = "latest"
 gh = "latest"
+go = "1.26.8"
+node = "24"
+pi = "latest"
 {{- if .work }}
+
+# Work machines
+java = "corretto-21"
+maven = "3.9"
+kubectl = "latest"
+helm = "latest"
+aws-cli = "latest"
+# govc isn't in mise's registry: it ships in the govmomi releases.
+"aqua:vmware/govmomi/govc" = "latest"
 glab = "latest"
 {{- end }}
-go = "1.26.8"
-node = "26.8.1"
-pi = "latest"
 
 [settings.upgrade]
 auto_prune = false
