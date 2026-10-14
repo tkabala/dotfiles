@@ -21,8 +21,6 @@ jobs:
             work: false
           - image: ubuntu:26.04
             work: true
-          - image: fedora:latest
-            work: false
           - image: archlinux:latest
             work: false
     name: ${{ matrix.image }}${{ matrix.work && ' (work)' || '' }}

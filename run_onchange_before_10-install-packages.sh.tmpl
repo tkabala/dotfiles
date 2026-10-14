@@ -32,8 +32,6 @@ $SUDO pacman -Sy --needed --noconfirm {{ concat $packages .packages.pacman | joi
 # pkgfile (command-not-found): build its file database once, then keep it fresh daily.
 [ -n "$(ls -A /var/cache/pkgfile 2>/dev/null)" ] || $SUDO pkgfile -u
 $SUDO systemctl enable --now pkgfile-update.timer || echo "couldn't enable pkgfile-update.timer; run: sudo pkgfile -u now and then" >&2
-{{   else if eq .chezmoi.osRelease.id "fedora" -}}
-$SUDO dnf install -y {{ concat $packages .packages.dnf | join " " }}
 {{   else -}}
 echo "Unsupported distro '{{ .chezmoi.osRelease.id }}'; install manually: {{ $packages | join " " }}" >&2
 {{   end }}

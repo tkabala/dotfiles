@@ -50,7 +50,7 @@
     executable = true
 
 # starship: installed here only when no starship is on the machine yet (see
-# .chezmoiignore): Fedora doesn't package it, and it isn't in the apt package list.
+# .chezmoiignore): it isn't in the apt package list.
 {{- $starshipTarget := printf "%s-unknown-linux-musl" $arch }}
 {{- if eq .chezmoi.os "darwin" }}{{ $starshipTarget = printf "%s-apple-darwin" $arch }}{{ end }}
 [".local/bin/starship"]

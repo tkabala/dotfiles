@@ -17,7 +17,7 @@ On first apply it also:
 
 - installs `zsh`, `git`, `curl`, `jq`, `git-delta`, `eza`, `fzf`, `zoxide`, `ripgrep`, `fd`, `bat`,
   a C compiler, `neovim` (except apt), powerline fonts and the distro's command-not-found
-  handler (`pkgfile`, `command-not-found` or PackageKit's) (apt / pacman / dnf / brew),
+  handler (`pkgfile` or `command-not-found`) (apt / pacman / brew),
   and sets zsh as the login shell — `run_onchange_before_10-install-packages.sh.tmpl`
   (may prompt for your sudo password). The package list lives in
   `.chezmoidata/packages.toml`; edit it and `chezmoi apply` to install new packages.
@@ -27,7 +27,7 @@ On first apply it also:
   (don't run the oh-my-zsh installer; it would overwrite `~/.zshrc`), plus the
   `zsh-autosuggestions` and `zsh-syntax-highlighting` plugins into its `custom/plugins`
 - installs [starship](https://starship.rs) into `~/.local/bin` if no `starship` is
-  installed yet (Fedora doesn't package it; it isn't in the apt list) — same external
+  installed yet (it isn't in the apt list) — same external
   pattern as herdr. The prompt config is `~/.config/starship.toml`, an agnoster-style powerline
   prompt (needs a Nerd Font); its git segment comes from `~/.config/starship/agnoster-git`.
 - installs [herdr](https://herdr.dev) into `~/.local/bin` if missing — a chezmoi
@@ -132,7 +132,7 @@ figures come from Claude Code itself, so the PR segment needs `gh` or `glab` log
 ## Testing
 
 `.github/workflows/test.yml` applies the dotfiles to fresh Debian 13, Ubuntu 26.04
-(as a work machine), Fedora and Arch containers and a macOS runner, on every push
+(as a work machine) and Arch containers, and to a macOS runner, on every push
 and weekly, then checks that zsh starts cleanly with all the tools —
 `.github/scripts/test-apply.sh`. To run one locally:
 

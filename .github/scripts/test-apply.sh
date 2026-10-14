@@ -19,7 +19,6 @@ if [ "$(id -u)" -eq 0 ]; then
       export DEBIAN_FRONTEND=noninteractive
       apt-get update -q && apt-get install -yq sudo git curl ca-certificates ;;
     *" arch "*) pacman -Syu --noconfirm --needed sudo git curl ;;
-    *" fedora "*) dnf install -y sudo git ;;
     *) echo "unknown distro $ID" >&2; exit 1 ;;
   esac
   useradd -m -s /bin/bash tester
