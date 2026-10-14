@@ -28,8 +28,8 @@ On first apply it also:
   `zsh-autosuggestions` and `zsh-syntax-highlighting` plugins into its `custom/plugins`
 - installs [starship](https://starship.rs) into `~/.local/bin` if no `starship` is
   installed yet (it isn't in the apt list) — same external
-  pattern as herdr. The prompt config is `~/.config/starship.toml`, an agnoster-style powerline
-  prompt (needs a Nerd Font); its git segment comes from `~/.config/starship/agnoster-git`.
+  pattern as herdr. The prompt config is `~/.config/starship.toml`, starship's
+  [Tokyo Night](https://starship.rs/presets/tokyo-night) preset (needs a Nerd Font).
 - installs [herdr](https://herdr.dev) into `~/.local/bin` if missing — a chezmoi
   external in `.chezmoiexternal.toml.tmpl`, ignored via `.chezmoiignore` once the
   binary exists so herdr's own updater owns it from then on
