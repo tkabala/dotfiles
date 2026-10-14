@@ -35,7 +35,7 @@ On first apply it also:
   binary exists so herdr's own updater owns it from then on
 - installs [mise](https://mise.jdx.dev) into `~/.local/bin` if no `mise` is installed
   yet (Debian/Ubuntu don't package it) — same external pattern as herdr; `mise
-  self-update` keeps it current. A distro-packaged mise (Arch/Omarchy) is left alone.
+  self-update` keeps it current. A distro-packaged mise (Arch) is left alone.
   The global tool list, `~/.config/mise/config.toml`, is tracked too (as
   `dot_config/mise/config.toml.tmpl`), and `run_onchange_after_20-mise-install.sh.tmpl`
   runs `mise install` whenever it changes. It holds `gh`, node, go, uv and the rest on every
