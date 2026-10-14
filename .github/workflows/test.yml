@@ -27,7 +27,7 @@ jobs:
             work: false
     name: ${{ matrix.image }}${{ matrix.work && ' (work)' || '' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Apply and check
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -38,7 +38,7 @@ jobs:
   macos:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Apply and check
         env:
           GITHUB_TOKEN: ${{ github.token }}
