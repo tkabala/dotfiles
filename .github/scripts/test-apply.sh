@@ -13,6 +13,7 @@ WORK=${1:-${WORK:-false}}
 [ "$WORK" = work ] && WORK=true
 
 if [ "$(id -u)" -eq 0 ]; then
+  # shellcheck source=/dev/null
   . /etc/os-release
   case " $ID ${ID_LIKE:-} " in
     *" debian "*|*" ubuntu "*)

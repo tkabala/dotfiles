@@ -22,6 +22,9 @@ command -v jq >/dev/null 2>&1 || { echo "statusline: jq not found"; exit 0; }
 
 # --- session data -----------------------------------------------------------
 
+# Everything the eval below sets, cleared first so a jq failure can't leave values from the environment.
+cwd='' session_name='' worktree='' pr='' pr_url='' cache='' cache_miss='' model='' effort='' fast='' elapsed=''
+ctx_pct='' ctx_tokens='' five='' five_reset='' week='' week_reset=''
 eval "$(jq -r '
   def dur: floor as $s
     | if $s <= 0 then "now"
