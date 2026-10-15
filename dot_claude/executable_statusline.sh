@@ -2,7 +2,7 @@
 # Claude Code status line.
 # Claude Code pipes session JSON on stdin and shows whatever this prints:
 #   1: cwd · worktree · clean/dirty · branch · +/- lines · ahead/behind · PR
-#   2: session name · model · thinking effort · context bar · compactions
+#   2: session name · model · thinking effort · context bar
 #   3: prompt-cache countdown + hit ratio · cache misses · 5h usage + reset · weekly usage + reset
 # Needs jq, git and a Nerd Font. The PR / MR comes from Claude Code's own lookup, which needs gh or glab
 # logged in. Keep it bash 3.2-safe for macOS.
@@ -37,7 +37,6 @@ eval "$(jq -r '
   | window(.seven_day) as [$week, $week_reset]
   | (.prompt_cache // {}) as $pc
   | @sh "cwd=\(.workspace.current_dir // .cwd // "")",
-    @sh "transcript=\(.transcript_path // "")",
     @sh "session_name=\(.session_name // "" | if length > 40 then .[:39] + "…" else . end)",
     @sh "worktree=\(.workspace.git_worktree // "")",
     @sh "pr=\(.pr // {} | if .number == null then "" else
@@ -188,10 +187,6 @@ if [ -n "$ctx_pct" ]; then
   [ "$filled" -gt "$width" ] && filled=$width
   bar=$(printf "%${filled}s" "" | sed 's/ /█/g')$(printf "%$((width - filled))s" "" | sed 's/ /░/g')
   seg R "$GREY" "$LIGHT" "$I_CTX $bar $ctx_tokens ($ctx_pct%)"
-fi
-if [ -f "$transcript" ]; then
-  compactions=$(grep -c '"subtype":"compact_boundary"' "$transcript")
-  [ "${compactions:-0}" -gt 0 ] && seg R "$WARN" "$DARK" "↻ $compactions"
 fi
 flush
 
