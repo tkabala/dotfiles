@@ -2,7 +2,7 @@
 # Claude Code status line.
 # Claude Code pipes session JSON on stdin and shows whatever this prints:
 #   1: cwd · worktree · clean/dirty · branch · +/- lines · ahead/behind · PR
-#   2: session name · model · thinking effort · context bar
+#   2: session name · time running · model · fast mode · thinking effort · context bar
 #   3: prompt-cache countdown + hit ratio (or rebuild cost when cold) · cache misses · 5h usage + reset
 #      · weekly usage + reset
 # The context bar and usage pills turn amber at 50% and orange at 80%.
@@ -68,6 +68,8 @@ eval "$(jq -r '
         end)",
     @sh "model=\(.model | if type == "object" then .display_name // .id else . end // "")",
     @sh "effort=\(.effort.level // "")",
+    @sh "fast=\(if .fast_mode == true then "fast" else "" end)",
+    @sh "elapsed=\(.cost.total_duration_ms | num | if . == null then "" else . / 1000 | dur end)",
     @sh "ctx_pct=\($ctx_pct // "" | if . == "" then . else round end)",
     @sh "ctx_tokens=\(if $size == null then ""
                       else "\(($used // (($ctx_pct // 0) * $size / 100)) | kilo)/\($size | kilo)" end)",
@@ -102,7 +104,7 @@ BAR=default DARK='#1a1b26' LIGHT='#c0caf5' GREY='#3b4261' BLUE='#7aa2f7' TEAL='#
 GREEN='#9ece6a' AMBER='#e0af68' MAGENTA='#bb9af7' PURPLE='#9d7cd8' WARN='#ff9e64'
 # Nerd Font icons (single-width, drawn in each pill's text color).
 I_DIR= I_TREE= I_BRANCH= I_PR=
-I_SESSION=󰭹 I_MODEL=󰚩 I_THINK=󰧑 I_CTX=󰍛
+I_SESSION=󰭹 I_CLOCK=󱎫 I_MODEL=󰚩 I_FAST=󱐋 I_THINK=󰧑 I_CTX=󰍛
 I_CACHE=󰆼 I_WARN= I_HOURGLASS=󰔟 I_CAL=󰃭 I_RESET=󰑓
 MARGIN=${STATUSLINE_MARGIN:-4}  # columns left unused: Claude Code truncates rows wider than its status area
 # level <color> <percent>: the given color below 50%, amber below 80%, orange from there.
@@ -200,7 +202,9 @@ flush
 # --- line 2: model and context ----------------------------------------------
 
 seg L "$LIGHT" "$DARK" "${session_name:+$I_SESSION $session_name}"
+seg L "$TEAL" "$DARK" "${elapsed:+$I_CLOCK $elapsed}"
 seg L "$GREY" "$LIGHT" "${model:+$I_MODEL $model}"
+seg L "$AMBER" "$DARK" "${fast:+$I_FAST $fast}"
 seg L "$PURPLE" "$DARK" "${effort:+$I_THINK $effort}"
 if [ -n "$ctx_pct" ]; then
   width=16 filled=$(((ctx_pct * 16 + 50) / 100))

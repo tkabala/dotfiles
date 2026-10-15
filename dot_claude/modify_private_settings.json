@@ -1,9 +1,12 @@
 #!/bin/sh
 # chezmoi modify script: gets the current ~/.claude/settings.json on stdin and
-# prints the new one. Only statusLine, theme, env.CLAUDE_CODE_SHELL and
-# env.DISABLE_AUTOUPDATER are managed here; everything else (hooks, plugins,
+# prints the new one. Only statusLine, subagentStatusLine, theme, showTurnDuration,
+# env.CLAUDE_CODE_SHELL and env.DISABLE_AUTOUPDATER are managed here; everything else (hooks, plugins,
 # /config changes) is left to Claude Code.
 # theme: the Tokyo Night theme in ~/.claude/themes/tokyo-night.json.
+# subagentStatusLine: draws the agent panel's rows as pills, like the status line.
+# showTurnDuration: the "Cooked for 1m 6s" line after each response (on by default;
+# set here so every machine shows it).
 # CLAUDE_CODE_SHELL: run Claude's commands in bash rather than the login shell
 # (zsh), since the commands it writes assume bash semantics.
 # DISABLE_AUTOUPDATER: mise installs and updates Claude Code (`mise up claude`); the
@@ -16,4 +19,7 @@ printf '%s\n' "$current" | jq --indent 2 '.statusLine = {
   "command": "~/.claude/statusline.sh",
   "padding": 0,
   "refreshInterval": 10
-} | .theme = "custom:tokyo-night" | .env.CLAUDE_CODE_SHELL = "/bin/bash" | .env.DISABLE_AUTOUPDATER = "1"' 2>/dev/null || printf '%s\n' "$current"
+} | .subagentStatusLine = {
+  "type": "command",
+  "command": "~/.claude/subagent-statusline.sh"
+} | .theme = "custom:tokyo-night" | .showTurnDuration = true | .env.CLAUDE_CODE_SHELL = "/bin/bash" | .env.DISABLE_AUTOUPDATER = "1"' 2>/dev/null || printf '%s\n' "$current"
