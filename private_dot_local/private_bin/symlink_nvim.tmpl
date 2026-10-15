@@ -1,4 +1,4 @@
 {{- /* Only on Debian/Ubuntu, where neovim comes from .chezmoiexternal; empty removes the link. */ -}}
-{{- if and (eq .chezmoi.os "linux") (or (eq .chezmoi.osRelease.id "debian" "ubuntu") (contains "debian" (get .chezmoi.osRelease "idLike"))) -}}
+{{- if eq (includeTemplate "is-apt" .) "true" -}}
 {{ .chezmoi.homeDir }}/.local/opt/nvim/bin/nvim
 {{- end -}}

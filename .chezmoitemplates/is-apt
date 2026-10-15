@@ -1,0 +1,3 @@
+{{- /* "true" on Debian, Ubuntu and their derivatives (apt-based), "false" elsewhere.
+       Use: {{ if eq (includeTemplate "is-apt" .) "true" }} */ -}}
+{{- and (eq .chezmoi.os "linux") (or (eq .chezmoi.osRelease.id "debian" "ubuntu") (contains "debian" (get .chezmoi.osRelease "idLike"))) -}}

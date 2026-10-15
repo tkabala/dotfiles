@@ -16,7 +16,7 @@ into `~/.local/share/chezmoi`, and applies the dotfiles to your home directory.
 On first apply it also:
 
 - installs `zsh`, `git`, `curl`, `jq`, `git-delta`, `eza`, `fzf`, `zoxide`, `ripgrep`, `fd`, `bat`,
-  a C compiler, `neovim` (except apt), powerline fonts and the distro's command-not-found
+  a C compiler, `neovim` (except apt) and the distro's command-not-found
   handler (`pkgfile` or `command-not-found`) (apt / pacman / brew),
   and sets zsh as the login shell — `run_onchange_before_10-install-packages.sh.tmpl`
   (may prompt for your sudo password). The package list lives in

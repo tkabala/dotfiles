@@ -14,7 +14,7 @@
 
 [packages]
 common = ["zsh", "git", "curl", "jq", "git-delta", "eza", "fzf", "zoxide", "ripgrep", "bat"]
-apt    = ["fonts-powerline", "fd-find", "build-essential", "command-not-found"]
-pacman = ["powerline-fonts", "neovim", "fd", "gcc", "pkgfile"]
+apt    = ["fd-find", "build-essential", "command-not-found"]
+pacman = ["neovim", "fd", "gcc", "pkgfile"]
 brew   = ["neovim", "fd"]
 

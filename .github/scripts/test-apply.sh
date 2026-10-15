@@ -2,7 +2,7 @@
 # Apply these dotfiles to a fresh machine and check the result. CI runs it in clean
 # Linux containers (as root) and on a macOS runner (as the runner user):
 #   .github/scripts/test-apply.sh [work]     # "work" answers yes to "Is this a work machine"
-# Locally: docker run --rm -v "$PWD:/src:ro" -e WORK=false debian:12 /src/.github/scripts/test-apply.sh
+# Locally: docker run --rm -v "$PWD:/src:ro" debian:13 /src/.github/scripts/test-apply.sh false
 #
 # As root it installs sudo/git/curl, creates a `tester` user with passwordless sudo
 # (like a real laptop: the install script uses sudo) and re-runs itself as that user.

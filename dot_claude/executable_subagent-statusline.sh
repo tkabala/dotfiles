@@ -36,14 +36,14 @@ exec jq -c '
   | .tasks[]
   | ({running: [$c.blue, "󰑮"], completed: [$c.green, ""], failed: [$c.red, ""],
       killed: [$c.grey, "󰜺"]}[.status] // [$c.grey, "•"]) as [$sc, $icon]
-  | (if .contextWindowSize then (.tokenCount * 100 / .contextWindowSize | round) else null end) as $pct
+  | (if .contextWindowSize then ((.tokenCount // 0) * 100 / .contextWindowSize | round) else null end) as $pct
   | [[$sc, $c.dark, "\($icon) \(.name // .agentType // "agent")"],
      (if .model then [$c.purple, $c.dark,
         (.model | model_name) + (if .effort then " · \(.effort)" else "" end)] else empty end),
      [($pct // 0 | level($c.teal)), $c.dark,
-        (if $pct then "\($pct)%" else (.tokenCount | kilo) end)
+        (if $pct then "\($pct)%" else (.tokenCount // 0 | kilo) end)
         # Only start times are sent, so the clock is shown while the task runs.
-        + (if .status == "running" then " · " + ((now - .startTime / 1000) | elapsed) else "" end)]
+        + (if .status == "running" then " · " + ((now - (.startTime // (now * 1000)) / 1000) | elapsed) else "" end)]
     ] as $fixed
   # The description pill gets whatever width is left, cut with an ellipsis if needed.
   | ($cols - ($fixed | width) - 4) as $room

@@ -9,6 +9,8 @@ for brew in /opt/homebrew/bin/brew /usr/local/bin/brew; do
 done
 unset brew
 
+# Keep each directory only once: nested shells (every herdr pane) would add these again.
+typeset -U path PATH
 export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
 
 # mise: the tools in ~/.config/mise/config.toml (gh, glab, node, ...). After the PATH
@@ -35,14 +37,6 @@ source $ZSH/oh-my-zsh.sh
 # Personal env, tools, aliases and functions: ~/.config/zsh/*.zsh, in name order
 for zsh_conf in ~/.config/zsh/*.zsh(N); do source "$zsh_conf"; done
 unset zsh_conf
-
-# eza instead of ls
-if (( $+commands[eza] )); then
-  alias ls='eza -lh --group-directories-first --icons=auto'
-  alias lsa='ls -a'
-  alias lt='eza --tree --level=2 --long --icons --git'
-  alias lta='lt -a'
-fi
 
 # herdr: update (at most daily), then autostart. Updating has to happen here,
 # before launch, because herdr can't self-update from inside a session.

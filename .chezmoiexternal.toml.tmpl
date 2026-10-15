@@ -62,7 +62,7 @@
 # neovim on Debian/Ubuntu: their packages are too old for LazyVim, so take the
 # upstream release, refreshed weekly (or with `chezmoi apply -R`).
 # ~/.local/bin/nvim links to it (private_dot_local/private_bin/symlink_nvim.tmpl).
-{{- if and (eq .chezmoi.os "linux") (or (eq .chezmoi.osRelease.id "debian" "ubuntu") (contains "debian" (get .chezmoi.osRelease "idLike"))) }}
+{{- if eq (includeTemplate "is-apt" .) "true" }}
 [".local/opt/nvim"]
     type = "archive"
     url = "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-{{ .chezmoi.arch | replace "amd64" "x86_64" }}.tar.gz"
