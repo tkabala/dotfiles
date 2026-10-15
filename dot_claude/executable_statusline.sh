@@ -3,7 +3,9 @@
 # Claude Code pipes session JSON on stdin and shows whatever this prints:
 #   1: cwd · worktree · clean/dirty · branch · +/- lines · ahead/behind · PR
 #   2: session name · model · thinking effort · context bar
-#   3: prompt-cache countdown + hit ratio · cache misses · 5h usage + reset · weekly usage + reset
+#   3: prompt-cache countdown + hit ratio (or rebuild cost when cold) · cache misses · 5h usage + reset
+#      · weekly usage + reset
+# The context bar and usage pills turn amber at 50% and orange at 80%.
 # Needs jq, git and a Nerd Font. The PR / MR comes from Claude Code's own lookup, which needs gh or glab
 # logged in. Keep it bash 3.2-safe for macOS.
 
@@ -47,7 +49,9 @@ eval "$(jq -r '
     @sh "pr_url=\(.pr.url // "")",
     @sh "cache=\(if $pc.caching_observed != true then ""
         else (if $pc.warm == true and ($pc.expires_at | num) != null and $pc.expires_at > now
-              then $pc.expires_at - now | mmss else "cold" end)
+              then $pc.expires_at - now | mmss
+              else "cold" + ($pc.recache_tokens_if_cold | num
+                | if . == null or . <= 0 then "" else " · \(kilo) to rebuild" end) end)
           + ($pc.hit_ratio | num | if . == null then "" else " · \(. * 100 | round)% hit" end)
         end)",
     @sh "cache_miss=\(($pc.misses | num // 0) as $n | if $n <= 0 then ""
@@ -71,7 +75,7 @@ cwd=${cwd:-$PWD}
 # terminal's own color scheme instead.
 
 RESET=$'\e[0m'
-SEP=$'\xee\x82\xb0' CAP=$'\xee\x82\xb2'  # powerline U+E0B0 / U+E0B2 (needs a powerline/Nerd font)
+SEP=$'\xee\x82\xb4' CAP=$'\xee\x82\xb6'  # rounded powerline U+E0B4 / U+E0B6 (needs a Nerd font)
 # color <38|48> <#rrggbb|index>: foreground (38) or background (48) escape.
 color() {
   case $2 in
@@ -92,6 +96,11 @@ I_DIR= I_TREE= I_BRANCH= I_PR=
 I_SESSION=󰭹 I_MODEL=󰚩 I_THINK=󰧑 I_CTX=󰍛
 I_CACHE=󰆼 I_WARN= I_HOURGLASS=󰔟 I_CAL=󰃭 I_RESET=󰑓
 MARGIN=${STATUSLINE_MARGIN:-4}  # columns left unused: Claude Code truncates rows wider than its status area
+# level <color> <percent>: the given color below 50%, amber below 80%, orange from there.
+level() {
+  local p=${2%%[.%]*}
+  if [ "${p:-0}" -ge 80 ]; then echo "$WARN"; elif [ "${p:-0}" -ge 50 ]; then echo "$AMBER"; else echo "$1"; fi
+}
 
 # Terminal width: $COLUMNS, then the tty of this process or an ancestor (the status line
 # runs without a controlling terminal), then tput; 120 as a last resort.
@@ -129,7 +138,10 @@ flush() {
     [ "${seg_side[i]}" = L ] || continue
     body=${seg_text[i]}
     [ -n "${seg_url[i]}" ] && body=$'\e]8;;'"${seg_url[i]}"$'\e\\'"$body"$'\e]8;;\e\\'
-    if [ -n "$prev" ]; then left+="$(fg "$prev")$(bg "${seg_bg[i]}")$SEP"; lw=$((lw + 1)); fi
+    # The first pill opens with a rounded cap out of the bar; later ones with the previous pill's separator.
+    if [ -n "$prev" ]; then left+="$(fg "$prev")$(bg "${seg_bg[i]}")$SEP"
+    else left+="$(fg "${seg_bg[i]}")$(bg "$BAR")$CAP"; fi
+    lw=$((lw + 1))
     left+="$(bg "${seg_bg[i]}")$(fg "${seg_fg[i]}") $body "
     lw=$((lw + ${#seg_text[i]} + 2))
     prev=${seg_bg[i]}
@@ -145,6 +157,8 @@ flush() {
     rw=$((rw + ${#seg_text[i]} + 3))
     prev=${seg_bg[i]}
   done
+  # The last pill closes with a rounded end back into the bar.
+  [ "$prev" != "$BAR" ] && { right+="$(fg "$prev")$(bg "$BAR")$SEP"; rw=$((rw + 1)); }
   local gap=$((WIDTH - MARGIN - lw - rw))
   [ "$gap" -lt 1 ] && gap=1
   printf '%s%s%*s%s%s\n' "$left" "$(bg "$BAR")" "$gap" "" "$right" "$RESET"
@@ -186,7 +200,7 @@ if [ -n "$ctx_pct" ]; then
   width=16 filled=$(((ctx_pct * 16 + 50) / 100))
   [ "$filled" -gt "$width" ] && filled=$width
   bar=$(printf "%${filled}s" "" | sed 's/ /█/g')$(printf "%$((width - filled))s" "" | sed 's/ /░/g')
-  seg R "$GREY" "$LIGHT" "$I_CTX $bar $ctx_tokens ($ctx_pct%)"
+  seg R "$(level "$GREEN" "$ctx_pct")" "$DARK" "$I_CTX $bar $ctx_tokens ($ctx_pct%)"
 fi
 flush
 
@@ -194,8 +208,8 @@ flush
 
 seg L "$GREY" "$LIGHT" "${cache:+$I_CACHE $cache}"
 seg L "$WARN" "$DARK" "${cache_miss:+$I_WARN $cache_miss}"
-seg R "$BLUE" "$DARK" "${five:+$I_HOURGLASS 5h $five}"
+seg R "$(level "$BLUE" "$five")" "$DARK" "${five:+$I_HOURGLASS 5h $five}"
 seg R "$GREY" "$LIGHT" "${five_reset:+$I_RESET $five_reset}"
-seg R "$GREEN" "$DARK" "${week:+$I_CAL 7d $week}"
+seg R "$(level "$GREEN" "$week")" "$DARK" "${week:+$I_CAL 7d $week}"
 seg R "$GREY" "$LIGHT" "${week_reset:+$I_RESET $week_reset}"
 flush
