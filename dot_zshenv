@@ -1,0 +1,10 @@
+# zsh reads this for every shell, including commands run over ssh (`ssh host cmd`), which
+# skip the login files where the system sets the locale. Without one, programs started that
+# way (and everything they start, e.g. a herdr server) treat text as bytes, not UTF-8.
+# Use the system's locale when there is one, like a login shell would; otherwise C.UTF-8,
+# which every glibc system has (macOS doesn't, so en_US.UTF-8 there).
+if [[ -z $LANG && -z $LC_ALL ]]; then
+  [[ -r /etc/locale.conf ]] && . /etc/locale.conf
+  [[ $OSTYPE == darwin* ]] && LANG=${LANG:-en_US.UTF-8}
+  export LANG=${LANG:-C.UTF-8}
+fi
