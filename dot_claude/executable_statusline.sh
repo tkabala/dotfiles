@@ -9,6 +9,14 @@
 # Needs jq, git and a Nerd Font. The PR / MR comes from Claude Code's own lookup, which needs gh or glab
 # logged in. Keep it bash 3.2-safe for macOS.
 
+# Row widths are counted in characters, which needs a UTF-8 locale; sessions started over ssh or
+# from a daemon can lack one, and then every icon counts as 3-4 columns and the right side drifts.
+probe='░'
+if [ "${#probe}" -ne 1 ]; then
+  for LC_ALL in C.UTF-8 en_US.UTF-8; do [ "${#probe}" -eq 1 ] && break; done
+  export LC_ALL
+fi
+
 input=$(cat)
 command -v jq >/dev/null 2>&1 || { echo "statusline: jq not found"; exit 0; }
 
