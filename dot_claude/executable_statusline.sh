@@ -138,10 +138,7 @@ flush() {
     [ "${seg_side[i]}" = L ] || continue
     body=${seg_text[i]}
     [ -n "${seg_url[i]}" ] && body=$'\e]8;;'"${seg_url[i]}"$'\e\\'"$body"$'\e]8;;\e\\'
-    # The first pill opens with a rounded cap out of the bar; later ones with the previous pill's separator.
-    if [ -n "$prev" ]; then left+="$(fg "$prev")$(bg "${seg_bg[i]}")$SEP"
-    else left+="$(fg "${seg_bg[i]}")$(bg "$BAR")$CAP"; fi
-    lw=$((lw + 1))
+    if [ -n "$prev" ]; then left+="$(fg "$prev")$(bg "${seg_bg[i]}")$SEP"; lw=$((lw + 1)); fi
     left+="$(bg "${seg_bg[i]}")$(fg "${seg_fg[i]}") $body "
     lw=$((lw + ${#seg_text[i]} + 2))
     prev=${seg_bg[i]}
@@ -157,8 +154,6 @@ flush() {
     rw=$((rw + ${#seg_text[i]} + 3))
     prev=${seg_bg[i]}
   done
-  # The last pill closes with a rounded end back into the bar.
-  [ "$prev" != "$BAR" ] && { right+="$(fg "$prev")$(bg "$BAR")$SEP"; rw=$((rw + 1)); }
   local gap=$((WIDTH - MARGIN - lw - rw))
   [ "$gap" -lt 1 ] && gap=1
   printf '%s%s%*s%s%s\n' "$left" "$(bg "$BAR")" "$gap" "" "$right" "$RESET"
