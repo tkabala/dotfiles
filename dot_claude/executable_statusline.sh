@@ -67,17 +67,27 @@ cwd=${cwd:-$PWD}
 
 # --- lualine-style rendering ------------------------------------------------
 # Rows span the full terminal width: segments queued with `L` hug the left edge, `R` the
-# right edge, and the gap between is filled with the bar background. Colors are ANSI
-# palette indices (0-15), not hex, so the terminal's color scheme themes the bar.
+# right edge, and the gap between is filled with the bar background. Colors are Tokyo Night
+# hex values to match the starship prompt; an ANSI index (0-15) also works and follows the
+# terminal's own color scheme instead.
 
 RESET=$'\e[0m'
 SEP=$'\xee\x82\xb0' CAP=$'\xee\x82\xb2'  # powerline U+E0B0 / U+E0B2 (needs a powerline/Nerd font)
-fg() { printf '\e[38;5;%sm' "$1"; }
-bg() { if [ "$1" = default ]; then printf '\e[49m'; else printf '\e[48;5;%sm' "$1"; fi; }
+# color <38|48> <#rrggbb|index>: foreground (38) or background (48) escape.
+color() {
+  case $2 in
+    \#*) printf '\e[%s;2;%d;%d;%dm' "$1" "0x${2:1:2}" "0x${2:3:2}" "0x${2:5:2}" ;;
+    *) printf '\e[%s;5;%sm' "$1" "$2" ;;
+  esac
+}
+fg() { color 38 "$1"; }
+bg() { if [ "$1" = default ]; then printf '\e[49m'; else color 48 "$1"; fi; }
 
-# Palette: ANSI indices. BAR is the filler between the left and right groups: "default" keeps
-# the terminal's own background; a number (e.g. 8 for a lighter grey bar) paints it.
-BAR=default DARK=0 LIGHT=7 GREY=8 BLUE=4 ORANGE=3 GREEN=2 AMBER=11 PINK=5 PURPLE=13 RED=1 CYAN=6
+# Palette: Tokyo Night. BAR is the filler between the left and right groups: "default" keeps
+# the terminal's own background; a color (e.g. #1f2335) paints it. Warnings are orange, like
+# the prompt arrow after a failed command.
+BAR=default DARK='#1a1b26' LIGHT='#c0caf5' GREY='#3b4261' BLUE='#7aa2f7' TEAL='#73daca'
+GREEN='#9ece6a' AMBER='#e0af68' MAGENTA='#bb9af7' PURPLE='#9d7cd8' WARN='#ff9e64'
 # Nerd Font icons (single-width, drawn in each pill's text color).
 I_DIR= I_TREE= I_BRANCH= I_PR=
 I_SESSION=󰭹 I_MODEL=󰚩 I_THINK=󰧑 I_CTX=󰍛
@@ -155,14 +165,14 @@ if status=$(git_ status --porcelain=v2 --branch); then
   added=$(sed -n 's/.* \([0-9]*\) insertion.*/\1/p' <<<"$shortstat")
   removed=$(sed -n 's/.* \([0-9]*\) deletion.*/\1/p' <<<"$shortstat")
 
-  seg L "$ORANGE" "$DARK" "${worktree:+$I_TREE $worktree}"
+  seg L "$TEAL" "$DARK" "${worktree:+$I_TREE $worktree}"
   if grep -qv '^#' <<<"$status"; then seg L "$GREY" "$LIGHT" "✗"; else seg L "$GREY" "$LIGHT" "✓"; fi
   seg L "$GREEN" "$DARK" "$I_BRANCH $branch"
   [ -n "$shortstat" ] && seg L "$AMBER" "$DARK" "+${added:-0} -${removed:-0}"
   ab=""
   [ "${ahead:-0}" -gt 0 ] && ab="↑$ahead"
   [ "${behind:-0}" -gt 0 ] && ab="${ab:+$ab }↓$behind"
-  seg L "$PINK" "$DARK" "$ab"
+  seg L "$MAGENTA" "$DARK" "$ab"
 fi
 # Open PR / MR for the branch, right-aligned, as an OSC 8 link when Claude Code knows its URL.
 seg R "$PURPLE" "$DARK" "${pr:+$I_PR $pr}" "$pr_url"
@@ -181,14 +191,14 @@ if [ -n "$ctx_pct" ]; then
 fi
 if [ -f "$transcript" ]; then
   compactions=$(grep -c '"subtype":"compact_boundary"' "$transcript")
-  [ "${compactions:-0}" -gt 0 ] && seg R "$RED" "$DARK" "↻ $compactions"
+  [ "${compactions:-0}" -gt 0 ] && seg R "$WARN" "$DARK" "↻ $compactions"
 fi
 flush
 
 # --- line 3: prompt cache and usage limits ----------------------------------
 
 seg L "$GREY" "$LIGHT" "${cache:+$I_CACHE $cache}"
-seg L "$RED" "$DARK" "${cache_miss:+$I_WARN $cache_miss}"
+seg L "$WARN" "$DARK" "${cache_miss:+$I_WARN $cache_miss}"
 seg R "$BLUE" "$DARK" "${five:+$I_HOURGLASS 5h $five}"
 seg R "$GREY" "$LIGHT" "${five_reset:+$I_RESET $five_reset}"
 seg R "$GREEN" "$DARK" "${week:+$I_CAL 7d $week}"
