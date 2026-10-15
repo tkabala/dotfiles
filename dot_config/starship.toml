@@ -107,3 +107,7 @@ Debian = "󰣚"
 Redhat = "󱄛"
 RedHatEnterprise = "󱄛"
 Pop = ""
+
+[character]
+success_symbol = "[❯](bold #769ff0)"
+error_symbol = "[❯](bold #ff9e64)"
