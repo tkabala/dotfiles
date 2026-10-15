@@ -76,6 +76,7 @@ cwd=${cwd:-$PWD}
 
 RESET=$'\e[0m'
 SEP=$'\xee\x82\xb4' CAP=$'\xee\x82\xb6'  # rounded powerline U+E0B4 / U+E0B6 (needs a Nerd font)
+FADE='░▒▓'                               # shade blocks the left edge fades in through, as in the prompt
 # color <38|48> <#rrggbb|index>: foreground (38) or background (48) escape.
 color() {
   case $2 in
@@ -138,7 +139,9 @@ flush() {
     [ "${seg_side[i]}" = L ] || continue
     body=${seg_text[i]}
     [ -n "${seg_url[i]}" ] && body=$'\e]8;;'"${seg_url[i]}"$'\e\\'"$body"$'\e]8;;\e\\'
-    if [ -n "$prev" ]; then left+="$(fg "$prev")$(bg "${seg_bg[i]}")$SEP"; lw=$((lw + 1)); fi
+    # The first pill fades in from the screen edge, like the prompt; later ones follow a separator.
+    if [ -n "$prev" ]; then left+="$(fg "$prev")$(bg "${seg_bg[i]}")$SEP"; lw=$((lw + 1))
+    else left+="$(fg "${seg_bg[i]}")$(bg "$BAR")$FADE"; lw=$((lw + 3)); fi
     left+="$(bg "${seg_bg[i]}")$(fg "${seg_fg[i]}") $body "
     lw=$((lw + ${#seg_text[i]} + 2))
     prev=${seg_bg[i]}
