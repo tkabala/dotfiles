@@ -114,7 +114,7 @@ newer release is out — herdr can't update itself from inside a session.
 
 `~/.claude/statusline.sh` draws Claude Code's status line as three full-width, lualine-style
 rows: pills hug the left and right edges and the gap between is filled with a bar. Left/right:
-directory, worktree, clean/dirty, branch, +/- lines, ahead/behind | open PR/MR as a link;
+hostname, directory, worktree, clean/dirty, branch, +/- lines, ahead/behind | open PR/MR as a link;
 session name, model, thinking effort | context bar and compaction count; prompt-cache
 countdown, hit ratio and misses | 5-hour/weekly usage with reset times. Needs `jq`, `git` and
 a Nerd Font (pills carry icons). Colors are ANSI palette indices, so the bar follows the terminal's color

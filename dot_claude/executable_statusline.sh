@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Claude Code status line.
 # Claude Code pipes session JSON on stdin and shows whatever this prints:
-#   1: cwd · worktree · clean/dirty · branch · +/- lines · ahead/behind · PR
+#   1: host · cwd · worktree · clean/dirty · branch · +/- lines · ahead/behind · PR
 #   2: session name · time running · model · fast mode · thinking effort · context bar
 #   3: prompt-cache countdown + hit ratio (or rebuild cost when cold) · cache misses · 5h usage + reset
 #      · weekly usage + reset
@@ -106,7 +106,7 @@ bg() { if [ "$1" = default ]; then printf '\e[49m'; else color 48 "$1"; fi; }
 BAR=default DARK='#1a1b26' LIGHT='#c0caf5' GREY='#3b4261' BLUE='#7aa2f7' TEAL='#73daca'
 GREEN='#9ece6a' AMBER='#e0af68' MAGENTA='#bb9af7' PURPLE='#9d7cd8' WARN='#ff9e64'
 # Nerd Font icons (single-width, drawn in each pill's text color).
-I_DIR= I_TREE= I_BRANCH= I_PR=
+I_HOST=󰍹 I_DIR= I_TREE= I_BRANCH= I_PR=
 I_SESSION=󰭹 I_CLOCK=󱎫 I_MODEL=󰚩 I_FAST=󱐋 I_THINK=󰧑 I_CTX=󰍛
 I_CACHE=󰆼 I_WARN= I_HOURGLASS=󰔟 I_CAL=󰃭 I_RESET=󰑓
 MARGIN=${STATUSLINE_MARGIN:-4}  # columns left unused: Claude Code truncates rows wider than its status area
@@ -178,6 +178,8 @@ flush() {
 
 # --- line 1: location and git -----------------------------------------------
 
+# Short hostname (up to the first dot), so sessions on other machines are easy to tell apart.
+seg L "$GREY" "$LIGHT" "$I_HOST ${HOSTNAME%%.*}"
 seg L "$BLUE" "$DARK" "$I_DIR ${cwd/#"$HOME"/\~}"
 
 git_() { git -C "$cwd" --no-optional-locks "$@" 2>/dev/null; }
