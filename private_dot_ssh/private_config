@@ -2,6 +2,11 @@
 # It is included first: ssh uses the first value it finds, so it wins.
 Include ~/.ssh/config.local
 
+# Bitbucket refuses a second session on a shared connection ("Session open
+# refused by peer"), so connection reuse below only produces warnings there.
+Host ssh.bitbucket.org
+    ControlMaster no
+
 Host *
     # /etc/ssh/ssh_config forwards LANG and LC_*, and servers often lack the
     # client's locale (e.g. en_GB.UTF-8), so perl, apt etc. warn "Setting locale
