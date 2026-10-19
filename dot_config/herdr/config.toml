@@ -1,0 +1,12 @@
+onboarding = false
+
+[terminal]
+# New panes and tabs open in the current pane's directory
+new_cwd = "follow"
+
+[ui]
+# Switch to the mobile layout in terminals narrower than 100 columns
+mobile_width_threshold = 100
+
+# Close tabs and workspaces without asking
+confirm_close = false
