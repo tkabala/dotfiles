@@ -40,6 +40,20 @@
     "rate_limit_fill": "#7aa2f7",
     "rate_limit_empty": "#3b4261",
     "briefLabelYou": "#73daca",
-    "briefLabelClaude": "#7aa2f7"
+    "briefLabelClaude": "#7aa2f7",
+    "composerSidebarBackground": "#282c34",
+    "autoAcceptShimmer": "#d0b9fa",
+    "skill": "#bb9af7",
+    "effortUltra": "#bb9af7",
+    "claudeBlue_FOR_SYSTEM_SPINNER": "#7aa2f7",
+    "claudeBlueShimmer_FOR_SYSTEM_SPINNER": "#a9c1fa",
+    "red_FOR_SUBAGENTS_ONLY": "#f7768e",
+    "blue_FOR_SUBAGENTS_ONLY": "#7aa2f7",
+    "green_FOR_SUBAGENTS_ONLY": "#9ece6a",
+    "yellow_FOR_SUBAGENTS_ONLY": "#e0af68",
+    "purple_FOR_SUBAGENTS_ONLY": "#9d7cd8",
+    "orange_FOR_SUBAGENTS_ONLY": "#ff9e64",
+    "pink_FOR_SUBAGENTS_ONLY": "#ff007c",
+    "cyan_FOR_SUBAGENTS_ONLY": "#7dcfff"
   }
 }
