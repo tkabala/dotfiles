@@ -54,6 +54,7 @@
     "purple_FOR_SUBAGENTS_ONLY": "#9d7cd8",
     "orange_FOR_SUBAGENTS_ONLY": "#ff9e64",
     "pink_FOR_SUBAGENTS_ONLY": "#ff007c",
-    "cyan_FOR_SUBAGENTS_ONLY": "#7dcfff"
+    "cyan_FOR_SUBAGENTS_ONLY": "#7dcfff",
+    "clawd_body": "#7aa2f7"
   }
 }
