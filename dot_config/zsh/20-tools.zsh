@@ -5,6 +5,8 @@
 (( $+commands[zoxide] )) && eval "$(zoxide init zsh --cmd cd)"
 # fzf --zsh needs fzf 0.48+; older distro builds just skip it
 (( $+commands[fzf] )) && source <(fzf --zsh 2>/dev/null)
+# herdr has no plugin or packaged completion file; generated so it tracks herdr updates
+(( $+commands[herdr] )) && source <(herdr completion zsh)
 
 # try: loaded on first use to keep shell startup fast
 if (( $+commands[try] )); then
