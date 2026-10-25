@@ -48,25 +48,3 @@
     type = "file"
     url = "https://mise.jdx.dev/mise-latest-{{ $os }}-{{ $miseArch }}"
     executable = true
-
-# starship: installed here only when no starship is on the machine yet (see
-# .chezmoiignore): it isn't in the apt package list.
-{{- $starshipTarget := printf "%s-unknown-linux-musl" $arch }}
-{{- if eq .chezmoi.os "darwin" }}{{ $starshipTarget = printf "%s-apple-darwin" $arch }}{{ end }}
-[".local/bin/starship"]
-    type = "archive-file"
-    url = "https://github.com/starship/starship/releases/latest/download/starship-{{ $starshipTarget }}.tar.gz"
-    path = "starship"
-    executable = true
-
-# neovim on Debian/Ubuntu: their packages are too old for LazyVim, so take the
-# upstream release, refreshed weekly (or with `chezmoi apply -R`).
-# ~/.local/bin/nvim links to it (private_dot_local/private_bin/symlink_nvim.tmpl).
-{{- if eq (includeTemplate "is-apt" .) "true" }}
-[".local/opt/nvim"]
-    type = "archive"
-    url = "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-{{ .chezmoi.arch | replace "amd64" "x86_64" }}.tar.gz"
-    exact = true
-    stripComponents = 1
-    refreshPeriod = "168h"
-{{- end }}

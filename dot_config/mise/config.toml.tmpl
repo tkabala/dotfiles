@@ -10,6 +10,13 @@ pi = "latest"
 pnpm = "12"
 shellcheck = "latest"
 uv = "latest"
+{{- if eq (includeTemplate "is-apt" .) "true" }}
+
+# Debian/Ubuntu: their neovim is too old for LazyVim and they don't package
+# starship. Elsewhere both come from pacman / brew (.chezmoidata/packages.toml).
+neovim = "latest"
+starship = "latest"
+{{- end }}
 {{- if .work }}
 
 # Work machines

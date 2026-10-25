@@ -4,8 +4,9 @@
 # common  - same name in every package manager
 # <mgr>   - extras / distro-specific names for that package manager
 #
-# neovim isn't in the apt list: Debian 13 ships 0.10, too old for LazyVim, so
-# .chezmoiexternal.toml.tmpl installs the upstream release on Debian and Ubuntu.
+# neovim and starship aren't in the apt list: Debian 13's neovim is 0.10, too old
+# for LazyVim, and starship isn't packaged. mise installs both there instead
+# (dot_config/mise/config.toml.tmpl).
 # ripgrep, fd and a C compiler are what LazyVim needs besides git, fzf and curl.
 # bat is installed as `batcat` on Debian/Ubuntu; ~/.config/zsh handles both names.
 # command-not-found / pkgfile back the oh-my-zsh
@@ -15,6 +16,6 @@
 [packages]
 common = ["zsh", "git", "curl", "jq", "git-delta", "eza", "fzf", "zoxide", "ripgrep", "bat"]
 apt    = ["fd-find", "build-essential", "command-not-found"]
-pacman = ["neovim", "fd", "gcc", "pkgfile"]
-brew   = ["neovim", "fd"]
+pacman = ["neovim", "starship", "fd", "gcc", "pkgfile"]
+brew   = ["neovim", "starship", "fd"]
 

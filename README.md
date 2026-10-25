@@ -16,7 +16,7 @@ into `~/.local/share/chezmoi`, and applies the dotfiles to your home directory.
 On first apply it also:
 
 - installs `zsh`, `git`, `curl`, `jq`, `git-delta`, `eza`, `fzf`, `zoxide`, `ripgrep`, `fd`, `bat`,
-  a C compiler, `neovim` (except apt) and the distro's command-not-found
+  a C compiler, `neovim` and `starship` (both except apt) and the distro's command-not-found
   handler (`pkgfile` or `command-not-found`) (apt / pacman / brew),
   and sets zsh as the login shell — `run_onchange_before_10-install-packages.sh.tmpl`
   (may prompt for your sudo password). The package list lives in
@@ -26,10 +26,6 @@ On first apply it also:
 - clones [oh-my-zsh](https://ohmyz.sh/) into `~/.oh-my-zsh` — `.chezmoiexternal.toml`
   (don't run the oh-my-zsh installer; it would overwrite `~/.zshrc`), plus the
   `zsh-autosuggestions` and `zsh-syntax-highlighting` plugins into its `custom/plugins`
-- installs [starship](https://starship.rs) into `~/.local/bin` if no `starship` is
-  installed yet (it isn't in the apt list) — same external
-  pattern as herdr. The prompt config is `~/.config/starship.toml`, starship's
-  [Tokyo Night](https://starship.rs/presets/tokyo-night) preset (needs a Nerd Font).
 - installs [herdr](https://herdr.dev) into `~/.local/bin` if missing — a chezmoi
   external in `.chezmoiexternal.toml.tmpl`, ignored via `.chezmoiignore` once the
   binary exists so herdr's own updater owns it from then on
@@ -39,14 +35,15 @@ On first apply it also:
   The global tool list, `~/.config/mise/config.toml`, is tracked too (as
   `dot_config/mise/config.toml.tmpl`), and `run_onchange_after_20-mise-install.sh.tmpl`
   runs `mise install` whenever it changes. It holds `gh`, node, go, uv and the rest on every
-  machine. Work machines also get java (Corretto 21), maven, kubectl, helm, aws-cli, govc,
+  machine, plus neovim and [starship](https://starship.rs) on Debian/Ubuntu (too old /
+  not packaged there). Work machines also get java (Corretto 21), maven, kubectl, helm, aws-cli, govc,
   vault, `glab` and playwright-cli. `mise up` updates them. `~/.zshrc` activates
   mise before oh-my-zsh, so the `gh` and `glab` plugins set up their completions.
   `mise use -g` edits the file in your home directory, not the repo: copy the change
   into `dot_config/mise/config.toml.tmpl` so other machines get it.
-- on Debian/Ubuntu, whose neovim is too old for LazyVim, installs the upstream
-  neovim release into `~/.local/opt/nvim` (linked from `~/.local/bin/nvim`), refreshed
-  weekly by chezmoi. The LazyVim config in `~/.config/nvim` is tracked except
+- the starship prompt config is `~/.config/starship.toml`, starship's
+  [Tokyo Night](https://starship.rs/presets/tokyo-night) preset (needs a Nerd Font).
+- the LazyVim config in `~/.config/nvim` is tracked except
   `lazy-lock.json` and the desktop's theme plugin files; `lazyvim.json` is only created if missing.
 - writes `~/.ssh/authorized_keys` from your GitHub public keys
   (`github.com/tkabala.keys`) — `private_dot_ssh/private_authorized_keys.tmpl`.
