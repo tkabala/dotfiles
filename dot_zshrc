@@ -22,6 +22,8 @@ export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
 # No theme: the prompt is starship (~/.config/zsh/20-tools.zsh).
 export ZSH="$HOME/.oh-my-zsh"
 ZSH_THEME=""
+# chezmoi updates oh-my-zsh through .chezmoiexternal, so its own updater is off.
+zstyle ':omz:update' mode disabled
 
 # zsh-autosuggestions and zsh-syntax-highlighting come from .chezmoiexternal;
 # zsh-syntax-highlighting has to stay last.
