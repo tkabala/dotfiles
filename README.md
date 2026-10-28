@@ -107,10 +107,14 @@ newer release is out — herdr can't update itself from inside a session.
 - `HERDR_UPDATE_INTERVAL=<seconds>` — change how often to check (default 86400)
 - `herdr-update-check --force` — check now, from a shell outside herdr
 
-The config, `~/.config/herdr/config.toml`, is tracked as `dot_config/herdr/config.toml`:
+The config, `~/.config/herdr/config.toml`, is tracked as `dot_config/herdr/config.toml.tmpl`:
 no first-run onboarding, new panes and tabs in the current directory, no close
 confirmation, and the mobile layout below 100 columns. herdr's logs, sockets
 and session files next to it aren't tracked.
+
+Put machine-specific herdr settings (e.g. extra `[[keys.command]]` bindings) in
+`~/.config/herdr/config.local.toml`, which isn't tracked. It's appended to the config at
+`chezmoi apply`, so re-run apply after editing it.
 
 ## Claude Code status line
 

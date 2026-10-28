@@ -10,3 +10,9 @@ mobile_width_threshold = 100
 
 # Close tabs and workspaces without asking
 confirm_close = false
+{{- /* Machine-local additions: appended from config.local.toml (untracked) if it exists. */}}
+{{- $local := joinPath .chezmoi.homeDir ".config/herdr/config.local.toml" }}
+{{- if stat $local }}
+
+{{ include $local | trimSuffix "\n" }}
+{{- end }}
