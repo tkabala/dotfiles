@@ -135,6 +135,9 @@ term_width() {
   echo "$w"
 }
 WIDTH=$(term_width)
+# Below this width (a phone, a split pane) the hostname, session name and context bar are left out.
+NARROW=${STATUSLINE_NARROW:-100}
+narrow=""; [ "$WIDTH" -lt "$NARROW" ] && narrow=1
 
 seg_side=() seg_bg=() seg_fg=() seg_text=() seg_url=()
 # seg <L|R> <bg> <fg> <text> [url] — queue a segment; empty text skips it.
@@ -142,14 +145,67 @@ seg() {
   [ -n "$4" ] || return 0
   seg_side+=("$1") seg_bg+=("$2") seg_fg+=("$3") seg_text+=("$4") seg_url+=("${5:-}")
 }
-# Print the queued segments as one full-width row and start a new one.
+# Print the queued segments as one full-width row and start a new one. When they don't fit
+# (a phone, a split pane), the row wraps: left pills fill as many rows as they need, and the
+# right group joins the last of them if it fits, else wraps onto right-aligned rows of its own.
 flush() {
-  local n=${#seg_text[@]} i body left="" right="" lw=0 rw=0 prev
+  local n=${#seg_text[@]} avail=$((WIDTH - MARGIN)) i w max row=() rw=0 left_rows=() right_rows=()
   [ "$n" -gt 0 ] || return 0
-  # Left group: each pill ends in a separator that blends into the next pill (or the bar).
-  prev=""
+  # A pill too wide for a row on its own is cut short with an ellipsis.
+  for ((i = 0; i < n; i++)); do
+    if [ "${seg_side[i]}" = L ]; then max=$((avail - 6)); else max=$((avail - 3)); fi
+    [ "$max" -lt 1 ] && max=1
+    [ "${#seg_text[i]}" -gt "$max" ] && seg_text[i]="${seg_text[i]:0:max-1}…"
+  done
+  # Left pills cost text + 3 each (padding, separator), plus 3 for the fade; right ones text + 3.
   for ((i = 0; i < n; i++)); do
     [ "${seg_side[i]}" = L ] || continue
+    w=$((${#seg_text[i]} + 3))
+    if [ ${#row[@]} -gt 0 ] && [ $((rw + w + 3)) -gt "$avail" ]; then
+      left_rows+=("${row[*]}") row=() rw=0
+    fi
+    row+=("$i") rw=$((rw + w))
+  done
+  [ ${#row[@]} -gt 0 ] && left_rows+=("${row[*]}")
+  local lw_last=$((rw > 0 ? rw + 3 : 0))
+  row=() rw=0
+  for ((i = 0; i < n; i++)); do
+    [ "${seg_side[i]}" = R ] || continue
+    w=$((${#seg_text[i]} + 3))
+    if [ ${#row[@]} -gt 0 ] && [ $((rw + w)) -gt "$avail" ]; then
+      right_rows+=("${row[*]}") row=() rw=0
+    fi
+    row+=("$i") rw=$((rw + w))
+  done
+  [ ${#row[@]} -gt 0 ] && right_rows+=("${row[*]}")
+  # Rows: every left row but the last alone; then the last left row with the first right row
+  # when both fit together (or when there's only one of them); then the remaining right rows.
+  local nl=${#left_rows[@]} nr=${#right_rows[@]} first_r=""
+  for ((i = 0; i + 1 < nl; i++)); do render_row "${left_rows[i]}" ""; done
+  [ "$nr" -gt 0 ] && first_r=${right_rows[0]}
+  if [ "$nl" -gt 0 ] && [ -n "$first_r" ] && [ $((lw_last + $(row_width "$first_r"))) -gt "$avail" ]; then
+    render_row "${left_rows[nl - 1]}" ""
+    render_row "" "$first_r"
+  elif [ "$nl" -gt 0 ]; then
+    render_row "${left_rows[nl - 1]}" "$first_r"
+  else
+    render_row "" "$first_r"
+  fi
+  for ((i = 1; i < nr; i++)); do render_row "" "${right_rows[i]}"; done
+  seg_side=() seg_bg=() seg_fg=() seg_text=() seg_url=()
+}
+# row_width "<indices>": columns taken by those right-side pills.
+row_width() {
+  local i w=0
+  for i in $1; do w=$((w + ${#seg_text[i]} + 3)); done
+  echo "$w"
+}
+# render_row "<left indices>" "<right indices>": print one row from the queued segments.
+render_row() {
+  local i body left="" right="" lw=0 rw=0 prev
+  # Left group: each pill ends in a separator that blends into the next pill (or the bar).
+  prev=""
+  for i in $1; do
     body=${seg_text[i]}
     [ -n "${seg_url[i]}" ] && body=$'\e]8;;'"${seg_url[i]}"$'\e\\'"$body"$'\e]8;;\e\\'
     # The first pill fades in from the screen edge, like the prompt; later ones follow a separator.
@@ -162,8 +218,7 @@ flush() {
   [ -n "$prev" ] && { left+="$(fg "$prev")$(bg "$BAR")$SEP"; lw=$((lw + 1)); }
   # Right group: each pill starts with a cap that blends from the previous pill (or the bar).
   prev=$BAR
-  for ((i = 0; i < n; i++)); do
-    [ "${seg_side[i]}" = R ] || continue
+  for i in $2; do
     body=${seg_text[i]}
     [ -n "${seg_url[i]}" ] && body=$'\e]8;;'"${seg_url[i]}"$'\e\\'"$body"$'\e]8;;\e\\'
     right+="$(fg "${seg_bg[i]}")$(bg "$prev")$CAP$(bg "${seg_bg[i]}")$(fg "${seg_fg[i]}") $body "
@@ -171,15 +226,15 @@ flush() {
     prev=${seg_bg[i]}
   done
   local gap=$((WIDTH - MARGIN - lw - rw))
-  [ "$gap" -lt 1 ] && gap=1
+  # A row with both groups keeps at least one column between them.
+  if [ -n "$left" ] && [ -n "$right" ] && [ "$gap" -lt 1 ]; then gap=1; elif [ "$gap" -lt 0 ]; then gap=0; fi
   printf '%s%s%*s%s%s\n' "$left" "$(bg "$BAR")" "$gap" "" "$right" "$RESET"
-  seg_side=() seg_bg=() seg_fg=() seg_text=() seg_url=()
 }
 
 # --- line 1: location and git -----------------------------------------------
 
 # Short hostname (up to the first dot), so sessions on other machines are easy to tell apart.
-seg L "$GREY" "$LIGHT" "$I_HOST ${HOSTNAME%%.*}"
+[ -z "$narrow" ] && seg L "$GREY" "$LIGHT" "$I_HOST ${HOSTNAME%%.*}"
 seg L "$BLUE" "$DARK" "$I_DIR ${cwd/#"$HOME"/\~}"
 
 git_() { git -C "$cwd" --no-optional-locks "$@" 2>/dev/null; }
@@ -206,16 +261,19 @@ flush
 
 # --- line 2: model and context ----------------------------------------------
 
-seg L "$LIGHT" "$DARK" "${session_name:+$I_SESSION $session_name}"
+[ -z "$narrow" ] && seg L "$LIGHT" "$DARK" "${session_name:+$I_SESSION $session_name}"
 seg L "$TEAL" "$DARK" "${elapsed:+$I_CLOCK $elapsed}"
 seg L "$GREY" "$LIGHT" "${model:+$I_MODEL $model}"
 seg L "$AMBER" "$DARK" "${fast:+$I_FAST $fast}"
 seg L "$PURPLE" "$DARK" "${effort:+$I_THINK $effort}"
 if [ -n "$ctx_pct" ]; then
-  width=16 filled=$(((ctx_pct * 16 + 50) / 100))
-  [ "$filled" -gt "$width" ] && filled=$width
-  bar=$(printf "%${filled}s" "" | sed 's/ /█/g')$(printf "%$((width - filled))s" "" | sed 's/ /░/g')
-  seg R "$(level "$GREEN" "$ctx_pct")" "$DARK" "$I_CTX $bar $ctx_tokens ($ctx_pct%)"
+  bar=""
+  if [ -z "$narrow" ]; then
+    width=16 filled=$(((ctx_pct * 16 + 50) / 100))
+    [ "$filled" -gt "$width" ] && filled=$width
+    bar="$(printf "%${filled}s" "" | sed 's/ /█/g')$(printf "%$((width - filled))s" "" | sed 's/ /░/g') "
+  fi
+  seg R "$(level "$GREEN" "$ctx_pct")" "$DARK" "$I_CTX $bar$ctx_tokens ($ctx_pct%)"
 fi
 flush
 

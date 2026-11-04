@@ -127,6 +127,10 @@ a Nerd Font (pills carry icons). Colors are ANSI palette indices, so the bar fol
 scheme. Width comes from `$COLUMNS` or the terminal's tty (120 if neither is found);
 `STATUSLINE_MARGIN` (default 4, since Claude Code truncates rows wider than its status area) leaves columns free at the right edge. The PR/MR and cache
 figures come from Claude Code itself, so the PR segment needs `gh` or `glab` logged in.
+On narrow screens (under `STATUSLINE_NARROW` columns, default 100: a phone over ssh, a split
+pane) the hostname, session name and context bar are left out, and rows that still don't fit
+wrap: pills move onto extra rows instead of being cut off, and a pill wider than the whole
+screen is shortened with `…`.
 
 `dot_claude/modify_private_settings.json` sets only the `statusLine` key,
 `env.CLAUDE_CODE_SHELL=/bin/bash` (Claude's commands run in bash, not zsh) and
