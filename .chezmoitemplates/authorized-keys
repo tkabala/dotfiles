@@ -1,0 +1,14 @@
+{{- /* SSH keys allowed in as this user: GitHub keys plus untracked machine-only extras.
+       Rendered into ~/.ssh/authorized_keys, or into /etc/pve/priv/authorized_keys on
+       Proxmox hosts (run_after_30-pve-authorized-keys.sh.tmpl). */ -}}
+# Managed by chezmoi: public keys from https://github.com/tkabala.keys
+# Manual edits are overwritten on `chezmoi apply`: put machine-only keys
+# (e.g. another server's root key) in ~/.ssh/authorized_keys.local instead.
+{{ range gitHubKeys "tkabala" -}}
+{{ .Key }}
+{{ end -}}
+{{- $local := joinPath .chezmoi.destDir ".ssh/authorized_keys.local" }}
+{{- if stat $local }}
+# From ~/.ssh/authorized_keys.local (not tracked)
+{{ include $local | trimSuffix "\n" }}
+{{ end -}}

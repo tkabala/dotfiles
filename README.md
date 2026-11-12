@@ -50,7 +50,36 @@ On first apply it also:
   This happens on every machine, so all your devices can SSH into each other.
   The file is fully replaced on each apply, so keys added by hand are lost:
   GitHub is the single place to add or revoke a device's key, followed by
-  `chezmoi apply` on each machine.
+  `chezmoi apply` on each machine. Keys only one machine should accept (e.g. a
+  server's root key) go in that machine's untracked `~/.ssh/authorized_keys.local`,
+  which is appended — not on GitHub, which would let them into every machine.
+
+The first prompt, "Minimal install", is for servers and containers: see below.
+
+### Servers and containers (minimal install)
+
+A minimal install manages only `~/.ssh/authorized_keys` (GitHub keys plus
+`authorized_keys.local`): no packages, no shell change, no oh-my-zsh/mise/herdr, no
+other dotfiles (`.chezmoiignore` ignores everything else, scripts included). As root:
+
+```sh
+sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /usr/local/bin init --apply \
+  --promptBool "Minimal install (only SSH authorized_keys)=true" tkabala
+# keep keys in sync with GitHub daily
+echo '17 4 * * * root /usr/local/bin/chezmoi update --force >/dev/null' > /etc/cron.d/chezmoi
+```
+
+chezmoi has git built in, so the machine doesn't need git.
+
+On a **Proxmox VE** host, `/root/.ssh/authorized_keys` is a symlink to
+`/etc/pve/priv/authorized_keys`, and `pveproxy` (via `pvecm updatecerts`) merges a
+regular file there back into it on every start. So on PVE (detected by
+`/usr/bin/pmxcfs`) chezmoi leaves the symlink alone and
+`run_after_30-pve-authorized-keys.sh.tmpl` writes the keys into
+`/etc/pve/priv/authorized_keys` instead. That file holds the node's own `root@<node>`
+key: put it, and other servers' keys, in `/root/.ssh/authorized_keys.local` before
+the first apply. In a cluster the file is shared by all nodes, so each node's
+`authorized_keys.local` must list every node's root key.
 
 ### 2. Or step by step
 

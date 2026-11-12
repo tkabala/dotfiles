@@ -2,6 +2,7 @@
 # Apply these dotfiles to a fresh machine and check the result. CI runs it in clean
 # Linux containers (as root) and on a macOS runner (as the runner user):
 #   .github/scripts/test-apply.sh [work]     # "work" answers yes to "Is this a work machine"
+#   .github/scripts/test-apply.sh minimal    # a server/container: only authorized_keys, as root
 # Locally: docker run --rm -v "$PWD:/src:ro" debian:13 /src/.github/scripts/test-apply.sh false
 #
 # As root it installs sudo/git/curl, creates a `tester` user with passwordless sudo
@@ -11,6 +12,39 @@ set -euo pipefail
 SRC=$(cd "$(dirname "$0")/../.." && pwd)
 WORK=${1:-${WORK:-false}}
 [ "$WORK" = work ] && WORK=true
+
+if [ "$WORK" = minimal ]; then
+  # Like a fresh LXC: root, curl only. Nothing else may be installed or changed.
+  if command -v apt-get >/dev/null; then
+    apt-get update -q && DEBIAN_FRONTEND=noninteractive apt-get install -yq curl ca-certificates
+  else
+    pacman -Sy --noconfirm --needed curl
+  fi
+  step() { printf '\n=== %s\n' "$*"; }
+  # A machine-only key (like another server's root key), appended to the GitHub ones.
+  mkdir -p -m 700 /root/.ssh
+  echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExtraLocalKeyForTesting000000000000000 local-extra" \
+    > /root/.ssh/authorized_keys.local
+  step "chezmoi init --apply (minimal)"
+  sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /usr/local/bin
+  chezmoi --source="$SRC" init --apply --promptBool "Minimal install (only SSH authorized_keys)=true"
+  step "nothing left to apply"
+  chezmoi --source="$SRC" verify
+  step "only authorized_keys is managed"
+  managed=$(chezmoi --source="$SRC" managed --include=files,dirs,symlinks,externals | tr '\n' ' ')
+  echo "$managed"
+  [ "$managed" = ".ssh .ssh/authorized_keys " ]
+  step "authorized_keys has GitHub keys and the local extra"
+  grep -c '^ssh-' /root/.ssh/authorized_keys
+  grep -q 'local-extra$' /root/.ssh/authorized_keys
+  [ "$(grep -c '^ssh-' /root/.ssh/authorized_keys)" -ge 2 ]
+  step "no packages, no shell change"
+  for t in zsh git nvim mise; do ! command -v $t >/dev/null || { echo "installed: $t" >&2; exit 1; }; done
+  [ ! -e /root/.oh-my-zsh ] && [ ! -e /root/.local/bin/mise ] && [ ! -e /root/.zshrc ]
+  [ "$(getent passwd root | cut -d: -f7)" = /bin/bash ]
+  step "all checks passed"
+  exit 0
+fi
 
 if [ "$(id -u)" -eq 0 ]; then
   # shellcheck source=/dev/null
@@ -39,6 +73,7 @@ cz() { "$HOME/.local/bin/chezmoi" --source="$SRC" "$@"; }
 step "chezmoi init --apply (work=$WORK)"
 sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin"
 cz init --apply \
+  --promptBool "Minimal install (only SSH authorized_keys)=false" \
   --promptBool "Is this a work machine=$WORK" --promptString "Git email=ci@example.com"
 
 step "nothing left to apply"

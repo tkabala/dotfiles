@@ -1,4 +1,21 @@
 README.md
+{{- /* Minimal machines (servers, containers): ignore everything — dotfiles, externals
+       and scripts — except authorized_keys. A `!` exclude wins over every ignore. */}}
+{{- /* Proxmox VE: authorized_keys is a symlink PVE owns; run_after_30-pve-authorized-keys
+       writes the keys through it instead. A `!` exclude would override this ignore,
+       so the minimal block below only adds one off Proxmox. */}}
+{{ $pve := stat "/usr/bin/pmxcfs" -}}
+{{ if $pve -}}
+.ssh/authorized_keys
+{{ end -}}
+{{ if get . "minimal" -}}
+**
+!30-pve-authorized-keys.sh
+{{   if not $pve -}}
+!.ssh
+!.ssh/authorized_keys
+{{   end -}}
+{{ end -}}
 {{- /* herdr self-updates; only let the external install it when it's missing. */}}
 {{ if stat (joinPath .chezmoi.destDir ".local/bin/herdr") -}}
 .local/bin/herdr

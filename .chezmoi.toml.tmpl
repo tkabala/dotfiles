@@ -1,13 +1,19 @@
 {{- /* Per-machine settings: asked on first `chezmoi init`, stored in ~/.config/chezmoi/chezmoi.toml. */ -}}
-{{- $work := promptBoolOnce . "work" "Is this a work machine" -}}
+{{- /* minimal: servers and containers get only ~/.ssh/authorized_keys (see .chezmoiignore). */ -}}
+{{- $minimal := promptBoolOnce . "minimal" "Minimal install (only SSH authorized_keys)" false -}}
+{{- $work := false -}}
 {{- $email := "" -}}
-{{- if $work -}}
-{{-   $email = promptStringOnce . "email" "Git email" -}}
-{{- else -}}
-{{-   $email = promptStringOnce . "email" "Git email" "tomasz.kabala@gmail.com" -}}
+{{- if not $minimal -}}
+{{-   $work = promptBoolOnce . "work" "Is this a work machine" -}}
+{{-   if $work -}}
+{{-     $email = promptStringOnce . "email" "Git email" -}}
+{{-   else -}}
+{{-     $email = promptStringOnce . "email" "Git email" "tomasz.kabala@gmail.com" -}}
+{{-   end -}}
 {{- end -}}
 
 [data]
+  minimal = {{ $minimal }}
   work = {{ $work }}
   email = {{ $email | quote }}
 

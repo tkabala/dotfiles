@@ -1,0 +1,24 @@
+{{- /* Proxmox VE only (renders empty, so never runs, elsewhere). On PVE,
+       /root/.ssh/authorized_keys is a symlink to /etc/pve/priv/authorized_keys, and
+       pveproxy's `pvecm updatecerts` merges any regular file there back into it, so
+       chezmoi leaves the symlink alone (.chezmoiignore) and this writes the keys into
+       the real file instead. Runs on every apply; writes only when something changed. */ -}}
+{{- if stat "/usr/bin/pmxcfs" -}}
+#!/bin/bash
+set -euo pipefail
+
+target=/etc/pve/priv/authorized_keys
+keys=$(cat <<'EOF'
+{{ includeTemplate "authorized-keys" . | trimSuffix "\n" }}
+EOF
+)
+
+if [ ! -d /etc/pve/priv ]; then
+  echo "/etc/pve isn't mounted (pve-cluster down?); skipping $target" >&2
+  exit 0
+fi
+if [ "$(cat "$target" 2>/dev/null)" != "$keys" ]; then
+  printf '%s\n' "$keys" > "$target"
+  echo "updated $target"
+fi
+{{ end -}}

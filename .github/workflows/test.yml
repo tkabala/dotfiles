@@ -23,7 +23,10 @@ jobs:
             work: true
           - image: archlinux:latest
             work: false
-    name: ${{ matrix.image }}${{ matrix.work && ' (work)' || '' }}
+          # a server/container: only authorized_keys, nothing installed
+          - image: debian:13
+            work: minimal
+    name: ${{ matrix.image }}${{ matrix.work == true && ' (work)' || matrix.work == 'minimal' && ' (minimal)' || '' }}
     steps:
       - uses: actions/checkout@v7
       - name: Apply and check
