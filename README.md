@@ -106,7 +106,7 @@ doesn't manage:
 
 - `~/.config/zsh/*-local.zsh` (e.g. `60-local.zsh`) — per-machine env, aliases, `PATH`
   and tool init. `~/.zshrc` sources `~/.config/zsh/*.zsh` in name order, so pick a
-  number above the managed `10-`–`30-` files to load after them. The directory isn't
+  number above the managed `10-`–`40-` files to load after them. The directory isn't
   `exact_`, so chezmoi leaves unmanaged files in it alone.
 - `~/.gitconfig.local` — per-machine git settings (credential helpers, etc.),
   included at the end of `~/.gitconfig` so it overrides the repo's settings.
@@ -150,7 +150,7 @@ Put machine-specific herdr settings (e.g. extra `[[keys.command]]` bindings) in
 `~/.claude/statusline.sh` draws Claude Code's status line as three full-width, lualine-style
 rows: pills hug the left and right edges and the gap between is filled with a bar. Left/right:
 hostname, directory, worktree, clean/dirty, branch, +/- lines, ahead/behind | open PR/MR as a link;
-session name, model, thinking effort | context bar and compaction count; prompt-cache
+session name, time running, model, fast mode, thinking effort | context bar; prompt-cache
 countdown, hit ratio and misses | 5-hour/weekly usage with reset times. Needs `jq`, `git` and
 a Nerd Font (pills carry icons). Colors are ANSI palette indices, so the bar follows the terminal's color
 scheme. Width comes from `$COLUMNS` or the terminal's tty (120 if neither is found);
