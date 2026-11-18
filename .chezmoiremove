@@ -1,0 +1,2 @@
+# Files chezmoi once installed and now deletes from the home directory.
+.claude/subagent-statusline.sh

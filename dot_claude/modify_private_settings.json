@@ -1,11 +1,11 @@
 #!/bin/sh
 # chezmoi modify script: gets the current ~/.claude/settings.json on stdin and
-# prints the new one. Only statusLine, subagentStatusLine, theme, showTurnDuration,
+# prints the new one. Only statusLine, theme, showTurnDuration,
 # awaySummaryEnabled, idleCompaction,
 # env.CLAUDE_CODE_SHELL and env.DISABLE_AUTOUPDATER are managed here; everything else (hooks, plugins,
 # /config changes) is left to Claude Code.
 # theme: the Tokyo Night theme in ~/.claude/themes/tokyo-night.json.
-# subagentStatusLine: draws the agent panel's rows as pills, like the status line.
+# subagentStatusLine: removed from older setups; Claude Code dropped the setting.
 # awaySummaryEnabled: off, so no session recap when returning after 5+ minutes away.
 # idleCompaction: off, so a long conversation isn't compacted while the session sits idle.
 # showTurnDuration: the "Cooked for 1m 6s" line after each response (on by default;
@@ -22,7 +22,4 @@ printf '%s\n' "$current" | jq --indent 2 '.statusLine = {
   "command": "~/.claude/statusline.sh",
   "padding": 0,
   "refreshInterval": 10
-} | .subagentStatusLine = {
-  "type": "command",
-  "command": "~/.claude/subagent-statusline.sh"
-} | .theme = "custom:tokyo-night" | .showTurnDuration = true | .awaySummaryEnabled = false | .idleCompaction = false | .env.CLAUDE_CODE_SHELL = "/bin/bash" | .env.DISABLE_AUTOUPDATER = "1"' 2>/dev/null || printf '%s\n' "$current"
+} | del(.subagentStatusLine) | .theme = "custom:tokyo-night" | .showTurnDuration = true | .awaySummaryEnabled = false | .idleCompaction = false | .env.CLAUDE_CODE_SHELL = "/bin/bash" | .env.DISABLE_AUTOUPDATER = "1"' 2>/dev/null || printf '%s\n' "$current"

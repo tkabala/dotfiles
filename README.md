@@ -164,8 +164,8 @@ screen is shortened with `…`.
 `dot_claude/modify_private_settings.json` sets only these keys in `~/.claude/settings.json`
 and leaves the rest of the file to Claude Code:
 
-- `statusLine` and `subagentStatusLine`: this status line, and the agent panel's rows drawn
-  as matching pills (`~/.claude/subagent-statusline.sh`)
+- `statusLine`: this status line (an old `subagentStatusLine` entry is removed, since Claude
+  Code no longer supports it)
 - `theme`: `custom:tokyo-night`, from `~/.claude/themes/tokyo-night.json`
 - `showTurnDuration`: the "Cooked for 1m 6s" line after each response, on every machine
 - `awaySummaryEnabled: false`: no session recap when you come back after 5+ minutes away
