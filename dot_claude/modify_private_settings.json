@@ -14,7 +14,7 @@
 # (zsh), since the commands it writes assume bash semantics.
 # DISABLE_AUTOUPDATER: mise installs and updates Claude Code (`mise up claude`); the
 # built-in updater would put a second copy back in ~/.local/bin.
-# CLAUDE_CODE_PLUGIN_DIRS: the mods in ~/.claude/mods, loaded in every session
+# CLAUDE_CODE_PLUGIN_DIRS: the mods in ~/.claude/mods (usage-planner, cache-keepalive), loaded in every session
 # (colon-separated; add a folder here for each new mod).
 current=$(cat)
 [ -n "$current" ] || current='{}'
@@ -24,4 +24,4 @@ printf '%s\n' "$current" | jq --indent 2 '.statusLine = {
   "command": "~/.claude/statusline.sh",
   "padding": 0,
   "refreshInterval": 10
-} | del(.subagentStatusLine) | .theme = "custom:tokyo-night" | .showTurnDuration = true | .awaySummaryEnabled = false | .idleCompaction = false | .env.CLAUDE_CODE_SHELL = "/bin/bash" | .env.DISABLE_AUTOUPDATER = "1" | .env.CLAUDE_CODE_PLUGIN_DIRS = "~/.claude/mods/usage-planner"' 2>/dev/null || printf '%s\n' "$current"
+} | del(.subagentStatusLine) | .theme = "custom:tokyo-night" | .showTurnDuration = true | .awaySummaryEnabled = false | .idleCompaction = false | .env.CLAUDE_CODE_SHELL = "/bin/bash" | .env.DISABLE_AUTOUPDATER = "1" | .env.CLAUDE_CODE_PLUGIN_DIRS = "~/.claude/mods/usage-planner:~/.claude/mods/cache-keepalive"' 2>/dev/null || printf '%s\n' "$current"

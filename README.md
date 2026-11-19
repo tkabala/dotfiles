@@ -184,6 +184,12 @@ folder through `CLAUDE_CODE_PLUGIN_DIRS`; a new mod also needs its folder added 
   it a note when a window first crosses 60/80/90% (5-hour) or 50/75/90% (weekly), with a
   toast for you. Thresholds are `THRESHOLDS` in `hooks/register.ts`; tests run with
   `claude plugin test ~/.claude/mods/usage-planner`.
+- `cache-keepalive`: keeps prompt caches from expiring while work runs. 50 minutes after a
+  main-session turn it sends "what's the status of the task?" (inside the 1-hour cache TTL),
+  at most 3 times without a prompt from you. Subagents waiting on background work (5-minute
+  TTL) get an "ok" message ~90 s before expiry, for up to 30 minutes, with the main-session
+  notification each one causes dropped. A busy subagent whose cache runs out mid-command
+  gets a one-time toast (long command or hang). `/keepalive on|off|status`.
 
 - Preview: `echo '{"cwd":"'$PWD'"}' | ~/.claude/statusline.sh`
 

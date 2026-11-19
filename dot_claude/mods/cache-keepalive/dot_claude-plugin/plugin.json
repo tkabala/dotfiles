@@ -1,0 +1,1 @@
+{ "name": "cache-keepalive", "version": "0.1.0", "description": "50 min after a turn ends, asks for task status to keep the 1h prompt cache warm and surface hung tasks" }
