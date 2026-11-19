@@ -172,6 +172,18 @@ and leaves the rest of the file to Claude Code:
 - `idleCompaction: false`: a long conversation isn't compacted while the session sits idle
 - `env.CLAUDE_CODE_SHELL=/bin/bash`: Claude's commands run in bash, not zsh
 - `env.DISABLE_AUTOUPDATER=1`: Claude Code comes from mise, `mise up claude` updates it
+- `env.CLAUDE_CODE_PLUGIN_DIRS`: loads the mods in `~/.claude/mods` in every session
+
+### Mods
+
+`dot_claude/mods/` holds Claude Code mods (plugins of function hooks), each loaded from its
+folder through `CLAUDE_CODE_PLUGIN_DIRS`; a new mod also needs its folder added there.
+
+- `usage-planner`: gives Claude a `usage_limits` tool reporting the Pro/Max 5-hour and weekly
+  usage windows (percent used, time to reset, learned cost per turn, turns left), and sends
+  it a note when a window first crosses 60/80/90% (5-hour) or 50/75/90% (weekly), with a
+  toast for you. Thresholds are `THRESHOLDS` in `hooks/register.ts`; tests run with
+  `claude plugin test ~/.claude/mods/usage-planner`.
 
 - Preview: `echo '{"cwd":"'$PWD'"}' | ~/.claude/statusline.sh`
 
