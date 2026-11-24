@@ -137,12 +137,18 @@ export const register: Register = (on) => {
     return { text: lines.join('\n') }
   })
 
-  // A prompt you typed (terminal or phone) resets the unattended budgets.
+  // Real activity resets the unattended budgets: a prompt you typed (terminal or
+  // phone), a background task or subagent waking the main session, or a /loop or
+  // scheduled task firing. Our own keepalive prompt (origin 'plugin') doesn't.
   on('prompt.submit', async ($, e, next) => {
     const kind = e.origin?.kind
     // Dropping it prints one dim line; task notifications don't pass session.receive.
+    // Checked first, so a warm's echo never counts as activity.
     if (kind === 'task-notification' && isWarmEcho(e.text, await $.clock.now())) return { drop: '' }
-    if (kind === 'composer' || kind === 'bridge') { pings = 0; warms.clear() }
+    if (kind === 'composer' || kind === 'bridge' || kind === 'task-notification' || kind === 'scheduled-trigger') {
+      pings = 0
+      warms.clear()
+    }
     cancelTimer()
     return next(e)
   })

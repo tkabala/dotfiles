@@ -195,7 +195,8 @@ folder through `CLAUDE_CODE_PLUGIN_DIRS`; a new mod also needs its folder added 
   `claude plugin test ~/.claude/mods/usage-planner`.
 - `cache-keepalive`: keeps prompt caches from expiring while work runs. 50 minutes after a
   main-session turn it sends "what's the status of the task?" (inside the 1-hour cache TTL),
-  at most 3 times without a prompt from you. Subagents waiting on background work (5-minute
+  at most 3 times in a row with no activity (your prompt, a subagent or background task
+  waking the main session, or a /loop firing). Subagents waiting on background work (5-minute
   TTL) get an "ok" message ~90 s before expiry, for up to 30 minutes, with the main-session
   notification each one causes dropped. A busy subagent whose cache runs out mid-command
   gets a one-time toast (long command or hang). `/keepalive on|off|status`.
