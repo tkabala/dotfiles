@@ -24,3 +24,7 @@ HISTSIZE=100000
 SAVEHIST=100000
 setopt hist_ignore_all_dups   # a repeated command replaces its older copy
 setopt hist_reduce_blanks     # "ls   -l" is saved as "ls -l"
+
+# Clickable links in herdr: tools that only print hyperlinks when they detect a
+# terminal that supports them (via the supports-hyperlinks check) don't know herdr.
+[[ $TERM_PROGRAM == herdr ]] && export FORCE_HYPERLINK=1
