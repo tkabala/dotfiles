@@ -108,6 +108,10 @@ doesn't manage:
   and tool init. `~/.zshrc` sources `~/.config/zsh/*.zsh` in name order, so pick a
   number above the managed `10-`–`40-` files to load after them. The directory isn't
   `exact_`, so chezmoi leaves unmanaged files in it alone.
+- `~/.bashrc.local` — per-machine env vars and tool setup for bash, sourced at the
+  top of `~/.bashrc`. bash is only Claude Code's shell (see `CLAUDE_CODE_SHELL`
+  below), so the managed `~/.bashrc` is minimal: it puts `~/.local/bin` on `PATH`
+  and, under Claude Code, switches mise to shims so a project's `mise.toml` is used.
 - `~/.gitconfig.local` — per-machine git settings (credential helpers, etc.),
   included at the end of `~/.gitconfig` so it overrides the repo's settings.
   Git skips the include if the file is missing.
@@ -170,7 +174,7 @@ and leaves the rest of the file to Claude Code:
 - `showTurnDuration`: the "Cooked for 1m 6s" line after each response, on every machine
 - `awaySummaryEnabled: false`: no session recap when you come back after 5+ minutes away
 - `idleCompaction: false`: a long conversation isn't compacted while the session sits idle
-- `env.CLAUDE_CODE_SHELL=/bin/bash`: Claude's commands run in bash, not zsh
+- `env.CLAUDE_CODE_SHELL=/bin/bash`: Claude's commands run in bash, not zsh, so `~/.bashrc` sets up their shell
 - `env.DISABLE_AUTOUPDATER=1`: Claude Code comes from mise, `mise up claude` updates it
 - `env.CLAUDE_CODE_PLUGIN_DIRS`: loads the mods in `~/.claude/mods` in every session
 
