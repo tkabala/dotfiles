@@ -19,9 +19,12 @@ export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
 # Under Claude Code (CLAUDECODE is set) use shims instead: its Bash tool snapshots
 # this shell once and never shows a prompt, so mise's prompt and cd hooks never run
 # and a project's mise.toml would be ignored. A shim picks the version per directory
-# each time the tool runs.
+# each time the tool runs. Claude Code inherits PATH from the terminal it started
+# in, where the hooks already put mise's install dirs in front; drop those first,
+# or they would win over the shims.
 if (( $+commands[mise] )); then
   if [[ -n $CLAUDECODE ]]; then
+    path=(${path:#${MISE_DATA_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/mise}/installs/*})
     eval "$(mise activate zsh --shims)"
   else
     eval "$(mise activate zsh)"
