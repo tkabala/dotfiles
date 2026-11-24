@@ -16,7 +16,17 @@ export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
 # mise: the tools in ~/.config/mise/config.toml (gh, glab, node, ...). After the PATH
 # line, which has ~/.local/bin/mise, and before oh-my-zsh, whose gh and glab plugins
 # only set up completions if those commands are already on PATH.
-(( $+commands[mise] )) && eval "$(mise activate zsh)"
+# Under Claude Code (CLAUDECODE is set) use shims instead: its Bash tool snapshots
+# this shell once and never shows a prompt, so mise's prompt and cd hooks never run
+# and a project's mise.toml would be ignored. A shim picks the version per directory
+# each time the tool runs.
+if (( $+commands[mise] )); then
+  if [[ -n $CLAUDECODE ]]; then
+    eval "$(mise activate zsh --shims)"
+  else
+    eval "$(mise activate zsh)"
+  fi
+fi
 
 # Oh My Zsh: completion, history and key bindings, plus the plugins below.
 # No theme: the prompt is starship (~/.config/zsh/20-tools.zsh).
