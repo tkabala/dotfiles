@@ -2,7 +2,8 @@
 # chezmoi modify script: gets the current ~/.claude/settings.json on stdin and
 # prints the new one. Only statusLine, theme, showTurnDuration,
 # awaySummaryEnabled, idleCompaction,
-# env.CLAUDE_CODE_SHELL, env.DISABLE_AUTOUPDATER and env.CLAUDE_CODE_PLUGIN_DIRS are managed here; everything else (hooks, plugins,
+# env.CLAUDE_CODE_SHELL, env.DISABLE_AUTOUPDATER, env.CLAUDE_CODE_PLUGIN_DIRS and the
+# mise-shims-path SessionStart hook are managed here; everything else (other hooks, plugins,
 # /config changes) is left to Claude Code.
 # theme: the Tokyo Night theme in ~/.claude/themes/tokyo-night.json.
 # subagentStatusLine: removed from older setups; Claude Code dropped the setting.
@@ -16,12 +17,15 @@
 # built-in updater would put a second copy back in ~/.local/bin.
 # CLAUDE_CODE_PLUGIN_DIRS: the mods in ~/.claude/mods (usage-planner, cache-keepalive), loaded in every session
 # (colon-separated; add a folder here for each new mod).
+# SessionStart hook ~/.claude/hooks/mise-shims-path.sh: makes the Bash tool use mise's
+# shims, so a project's mise.toml picks the tool versions. Added once, next to any
+# other SessionStart hooks.
 current=$(cat)
 [ -n "$current" ] || current='{}'
 # Without jq, or if the file isn't valid JSON, leave it as it is.
-printf '%s\n' "$current" | jq --indent 2 '.statusLine = {
+printf '%s\n' "$current" | jq --indent 2 --arg mise_hook '$HOME/.claude/hooks/mise-shims-path.sh' '.statusLine = {
   "type": "command",
   "command": "~/.claude/statusline.sh",
   "padding": 0,
   "refreshInterval": 10
-} | del(.subagentStatusLine) | .theme = "custom:tokyo-night" | .showTurnDuration = true | .awaySummaryEnabled = false | .idleCompaction = false | .env.CLAUDE_CODE_SHELL = "/bin/bash" | .env.DISABLE_AUTOUPDATER = "1" | .env.CLAUDE_CODE_PLUGIN_DIRS = "~/.claude/mods/usage-planner:~/.claude/mods/cache-keepalive"' 2>/dev/null || printf '%s\n' "$current"
+} | del(.subagentStatusLine) | .theme = "custom:tokyo-night" | .showTurnDuration = true | .awaySummaryEnabled = false | .idleCompaction = false | .env.CLAUDE_CODE_SHELL = "/bin/bash" | .env.DISABLE_AUTOUPDATER = "1" | .env.CLAUDE_CODE_PLUGIN_DIRS = "~/.claude/mods/usage-planner:~/.claude/mods/cache-keepalive" | .hooks.SessionStart = ((.hooks.SessionStart // []) | if any(.[].hooks[]?; .command == $mise_hook) then . else . + [{"hooks": [{"type": "command", "command": $mise_hook}]}] end)' 2>/dev/null || printf '%s\n' "$current"
