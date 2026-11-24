@@ -20,3 +20,13 @@ for d in "${dirs[@]}"; do
   esac
 done
 printf 'export PATH=%q\n' "$first$data/shims${rest:+:$rest}" >> "$CLAUDE_ENV_FILE"
+
+# The terminal's mise hooks also export tool homes for the global versions; tools
+# prefer them to what's on PATH (./mvnw uses JAVA_HOME, go uses GOROOT), so a
+# project's pinned version would be ignored again. Clear those that point into
+# mise's installs; ones set some other way stay.
+for v in JAVA_HOME GOROOT GOBIN; do
+  case ${!v} in
+    "$data"/installs/*) printf 'unset %s\n' "$v" >> "$CLAUDE_ENV_FILE" ;;
+  esac
+done
