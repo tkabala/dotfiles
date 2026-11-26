@@ -203,6 +203,16 @@ folder through `CLAUDE_CODE_PLUGIN_DIRS`; a new mod also needs its folder added 
 
 - Preview: `echo '{"cwd":"'$PWD'"}' | ~/.claude/statusline.sh`
 
+### Skills
+
+`dot_claude/skills/` holds Claude Code skills, installed to `~/.claude/skills/` (skills
+already there that aren't in the repo are left alone).
+
+- `bye`: end-of-session wrap-up, run with `/bye`. Checks that work is committed and pushed,
+  that nothing the session started is still running or left behind, and what's still open;
+  proposes a "start here next time" memory note and lessons for the project's `CLAUDE.md`
+  or docs. It reports first and only commits, pushes, cleans up or writes after you approve.
+
 ## Testing
 
 `.github/workflows/test.yml` applies the dotfiles to fresh Debian 13, Ubuntu 26.04
