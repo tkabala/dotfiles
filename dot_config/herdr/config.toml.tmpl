@@ -10,6 +10,55 @@ mobile_width_threshold = 100
 
 # Close tabs and workspaces without asking
 confirm_close = false
+
+# Now playing in cliamp, at the right of the tab bar; empty when it isn't running
+tab_bar_right = [
+  { type = "command", interval_seconds = 3, timeout_seconds = 2, command = """
+"$HOME/.local/bin/cliamp" status --json 2>/dev/null | jq -r '
+  select(.ok and (.state == "playing" or .state == "paused"))
+  | ([.track.artist, .track.title] | map(select(. != null and . != "")) | join(" – ")) as $t
+  | select($t != "")
+  | (if .state == "playing" then "♪ " else "⏸ " end)
+    + (if ($t | length) > 40 then $t[:39] + "…" else $t end)
+' 2>/dev/null
+""" },
+]
+
+[experimental]
+# herdr-cliamp attaches its floating player to a separate herdr session
+allow_nested = true
+
+# herdr-cliamp (herdr plugin install coryshaw1/herdr-cliamp): cliamp keeps
+# playing in its own session; closing the float only detaches.
+[[keys.command]]
+key = "prefix+m"
+type = "plugin_action"
+command = "herdr-cliamp.open"
+description = "cliamp: floating player"
+
+[[keys.command]]
+key = "prefix+M"
+type = "plugin_action"
+command = "herdr-cliamp.status"
+description = "cliamp: now playing"
+
+[[keys.command]]
+key = "prefix+i"
+type = "plugin_action"
+command = "herdr-cliamp.toggle"
+description = "cliamp: play/pause"
+
+[[keys.command]]
+key = "prefix+y"
+type = "plugin_action"
+command = "herdr-cliamp.next"
+description = "cliamp: next track"
+
+[[keys.command]]
+key = "prefix+u"
+type = "plugin_action"
+command = "herdr-cliamp.prev"
+description = "cliamp: previous track"
 {{- /* Machine-local additions: appended from config.local.toml (untracked) if it exists. */}}
 {{- $local := joinPath .chezmoi.homeDir ".config/herdr/config.local.toml" }}
 {{- if stat $local }}
